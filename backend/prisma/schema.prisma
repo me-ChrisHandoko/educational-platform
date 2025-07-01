@@ -1,5 +1,5 @@
-// Educational Management Platform - Prisma Schema (ENHANCED WITH INSTALLMENTS)
-// High-performance multi-tenant architecture with installment payment support
+// Educational Management Platform - Prisma Schema (ENHANCED WITH INSTALLMENTS & WHITE LABEL)
+// High-performance multi-tenant architecture with installment payment support and white label
 
 generator client {
   provider        = "prisma-client-js"
@@ -7,10 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [uuid_ossp(map: "uuid-ossp"), pgcrypto]
-  schemas    = ["public", "tenant"]
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "tenant"]
 }
 
 // ==================== PLATFORM LEVEL (public schema) ====================
@@ -65,14 +64,49 @@ model Tenant {
 }
 
 model School {
-  id            String        @id @default(uuid()) @db.Uuid
-  tenantId      String        @db.Uuid
-  schemaName    String        @unique @db.VarChar(100) // For schema isolation
-  name          String
-  code          String        @unique @db.VarChar(50)
-  npsn          String?       @unique @db.VarChar(20) // National School ID
-  subdomain     String        @unique
-  customDomain  String?       @unique
+  id           String  @id @default(uuid()) @db.Uuid
+  tenantId     String  @db.Uuid
+  schemaName   String  @unique @db.VarChar(100) // For schema isolation
+  name         String
+  code         String  @unique @db.VarChar(50)
+  npsn         String? @unique @db.VarChar(20) // National School ID
+  subdomain    String  @unique
+  customDomain String? @unique
+
+  // === WHITE LABEL CONFIGURATION ===
+  whiteLabelConfig Json @default("{}") // Konfigurasi white label
+  /**
+   * Struktur whiteLabelConfig:
+   * {
+   * "enabled": true,
+   * "branding": {
+   * "logo": "https://cdn.school.com/logo.png",
+   * "favicon": "https://cdn.school.com/favicon.ico",
+   * "primaryColor": "#1e40af",
+   * "secondaryColor": "#64748b",
+   * "fontFamily": "Inter",
+   * "customCSS": "body { ... }"
+   * },
+   * "domain": {
+   * "customDomain": "www.sekolahku.sch.id",
+   * "sslEnabled": true,
+   * "sslProvider": "letsencrypt",
+   * "sslExpiry": "2025-12-31"
+   * },
+   * "features": {
+   * "hidePlatformBranding": true,
+   * "customLoginPage": true,
+   * "customEmailTemplates": true,
+   * "mobileAppBranding": true
+   * },
+   * "seo": {
+   * "title": "Sekolah Kusuma Bangsa",
+   * "description": "Portal akademik terdepan",
+   * "keywords": ["sekolah", "akademik", "pendidikan"]
+   * }
+   * }
+   */
+
   status        SchoolStatus  @default(ACTIVE)
   type          SchoolType
   levels        SchoolLevel[]
@@ -89,6 +123,7 @@ model School {
   @@index([tenantId])
   @@index([status])
   @@index([type])
+  @@index([customDomain]) // Index untuk performa routing domain
   @@map("schools")
   @@schema("public")
 }
@@ -289,6 +324,102 @@ model PlatformFeature {
   @@schema("public")
 }
 
+// White Label Plans
+model WhiteLabelPlan {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String // "Basic White Label", "Premium White Label"
+  code        String  @unique
+  description String?
+
+  // Pricing structure
+  setupFee        Decimal @db.Decimal(12, 2) // Biaya setup sekali
+  monthlyFee      Decimal @db.Decimal(12, 2) // Biaya bulanan
+  customDomainFee Decimal @db.Decimal(12, 2) // Biaya domain custom per tahun
+  mobileAppFee    Decimal @db.Decimal(12, 2) // Biaya mobile app branding per bulan
+
+  // Features included
+  features Json @default("{}")
+  /**
+   * Struktur features:
+   * {
+   * "customDomain": true,
+   * "sslCertificate": true,
+   * "logoCustomization": true,
+   * "colorCustomization": true,
+   * "hidePlatformBranding": true,
+   * "customEmailTemplates": true,
+   * "mobileAppBranding": false,
+   * "customCSSSupport": true,
+   * "prioritySupport": true,
+   * "maxCustomDomains": 1
+   * }
+   */
+
+  status    BaseStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  subscriptions WhiteLabelSubscription[]
+
+  @@map("white_label_plans")
+  @@schema("public")
+}
+
+// White Label Subscriptions
+model WhiteLabelSubscription {
+  id       String           @id @default(uuid()) @db.Uuid
+  schoolId String           @db.Uuid
+  planId   String           @db.Uuid
+  status   WhiteLabelStatus @default(ACTIVE)
+
+  // ✅ REMOVED REDUNDANT FIELD - Use School.customDomain as single source of truth
+  // currentDomain    String?
+
+  domainVerified Boolean   @default(false)
+  sslEnabled     Boolean   @default(false)
+  sslExpiry      DateTime?
+
+  // Billing
+  setupPaid        Boolean  @default(false)
+  nextBillingDate  DateTime
+  lastBilledAmount Decimal  @db.Decimal(12, 2)
+
+  activatedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  metadata    Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  plan WhiteLabelPlan @relation(fields: [planId], references: [id])
+
+  @@unique([schoolId]) // Satu sekolah hanya bisa punya satu subscription aktif
+  @@index([status])
+  @@map("white_label_subscriptions")
+  @@schema("public")
+}
+
+// Domain Verification
+model DomainVerification {
+  id           String             @id @default(uuid()) @db.Uuid
+  schoolId     String             @db.Uuid
+  domain       String
+  verifyToken  String             @unique // Token untuk verifikasi DNS
+  verifyMethod VerificationMethod
+  verified     Boolean            @default(false)
+  verifiedAt   DateTime?
+  expiresAt    DateTime // Token expiry
+  attempts     Int                @default(0)
+  lastAttempt  DateTime?
+  metadata     Json               @default("{}")
+  createdAt    DateTime           @default(now())
+
+  @@unique([schoolId, domain])
+  @@index([verifyToken])
+  @@index([verified])
+  @@map("domain_verifications")
+  @@schema("public")
+}
+
 // Platform User Management
 model TenantUser {
   id           String     @id @default(uuid()) @db.Uuid
@@ -390,17 +521,19 @@ model Student {
   religion           String?
   specialNeeds       Json?
   healthInfo         Json?
-  currentGradeId     String?       @db.Uuid
-  classId            String?       @db.Uuid
+  // ✅ REMOVED REDUNDANT FIELDS - Use Enrollment model instead
+  // currentGradeId     String?       @db.Uuid
+  // classId            String?       @db.Uuid
   status             StudentStatus @default(ACTIVE)
   graduationDate     DateTime?
   metadata           Json          @default("{}")
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  currentGrade Grade? @relation(fields: [currentGradeId], references: [id])
-  class        Class? @relation(fields: [classId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // ✅ REMOVED REDUNDANT RELATIONS - Use enrollments instead
+  // currentGrade Grade? @relation(fields: [currentGradeId], references: [id])
+  // class        Class? @relation(fields: [classId], references: [id])
 
   enrollments       Enrollment[]
   attendances       StudentAttendance[]
@@ -413,8 +546,6 @@ model Student {
   @@index([schoolId])
   @@index([studentNumber])
   @@index([nisn])
-  @@index([currentGradeId])
-  @@index([classId])
   @@index([status])
   @@map("students")
   @@schema("tenant")
@@ -570,10 +701,11 @@ model Grade {
   code     String
   order    Int
 
-  students  Student[]
-  classes   Class[]
-  subjects  Subject[]
-  curricula GradeCurriculum[]
+  classes             Class[]
+  subjects            Subject[]
+  curricula           GradeCurriculum[]
+  enrollments         Enrollment[]
+  previousEnrollments Enrollment[]      @relation("PreviousGrade") // ✅ For promotion tracking
 
   @@unique([schoolId, code])
   @@index([level])
@@ -602,8 +734,8 @@ model Class {
   room         Room?        @relation(fields: [roomId], references: [id])
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
 
-  students  Student[]
-  schedules Schedule[]
+  enrollments Enrollment[] // ✅ Track students via enrollments
+  schedules   Schedule[]
 
   @@index([gradeId])
   @@index([academicYearId])
@@ -696,14 +828,37 @@ model Enrollment {
   gradeId        String           @db.Uuid
   classId        String           @db.Uuid
   enrollmentDate DateTime
+  completionDate DateTime? // ✅ ENHANCED: When this enrollment ended
   status         EnrollmentStatus @default(ACTIVE)
 
-  student      Student      @relation(fields: [studentId], references: [id])
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
+  // ✅ ENHANCED: Grade progression tracking
+  isPromotion     Boolean        @default(false) // Is this a promotion from previous grade?
+  previousGradeId String?        @db.Uuid // Previous grade (for promotion tracking)
+  promotionType   PromotionType? // REGULAR, ACCELERATED, RETAINED, CONDITIONAL
+
+  // ✅ ENHANCED: Academic performance context
+  finalGPA       Decimal? @db.Decimal(4, 2) // GPA at end of this enrollment
+  completionNote String? // Notes about completion (graduated, transferred, etc.)
+
+  // ✅ ENHANCED: Approval workflow
+  approvedBy String?   @db.Uuid // Who approved this enrollment/promotion
+  approvedAt DateTime? // When it was approved
+
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student       Student      @relation(fields: [studentId], references: [id])
+  academicYear  AcademicYear @relation(fields: [academicYearId], references: [id])
+  grade         Grade        @relation(fields: [gradeId], references: [id])
+  class         Class        @relation(fields: [classId], references: [id])
+  previousGrade Grade?       @relation("PreviousGrade", fields: [previousGradeId], references: [id])
 
   @@unique([studentId, academicYearId])
   @@index([status])
   @@index([academicYearId])
+  @@index([gradeId])
+  @@index([isPromotion])
   @@map("enrollments")
   @@schema("tenant")
 }
@@ -1551,6 +1706,24 @@ enum TenantRole {
   @@schema("public")
 }
 
+// White Label Enums
+enum WhiteLabelStatus {
+  ACTIVE
+  PENDING_VERIFICATION // Menunggu verifikasi domain
+  SUSPENDED
+  CANCELLED
+
+  @@schema("public")
+}
+
+enum VerificationMethod {
+  DNS_TXT // Verifikasi via DNS TXT record
+  DNS_CNAME // Verifikasi via DNS CNAME
+  FILE_UPLOAD // Verifikasi via file upload ke domain
+
+  @@schema("public")
+}
+
 enum UserStatus {
   ACTIVE
   INACTIVE
@@ -1649,6 +1822,16 @@ enum EnrollmentStatus {
   COMPLETED
   WITHDRAWN
   TRANSFERRED
+
+  @@schema("tenant")
+}
+
+// ✅ NEW: Enhanced promotion tracking
+enum PromotionType {
+  REGULAR // Normal naik kelas
+  ACCELERATED // Loncat kelas / akselerasi
+  RETAINED // Tinggal kelas
+  CONDITIONAL // Naik kelas bersyarat
 
   @@schema("tenant")
 }
