@@ -2,19 +2,19 @@
 
 ## Executive Summary
 
-This comprehensive educational management application design addresses the complete lifecycle of multi-school tenant operations in Indonesia, covering kindergarten through high school (TK, SD, SMP, SMA). The system integrates national compliance requirements, modern technology architecture, and tenant-specific management capabilities while supporting Indonesia's unique educational landscape including NISN integration, DAPODIK compliance, local payment systems, and comprehensive installment payment solutions.
+This comprehensive educational management application design addresses the complete lifecycle of multi-school tenant operations in Indonesia, covering kindergarten through high school (TK, SD, SMP, SMA). The system integrates national compliance requirements, modern technology architecture, and tenant-specific management capabilities while supporting Indonesia's unique educational landscape including NISN integration, DAPODIK compliance, local payment systems, comprehensive installment payment solutions, **advanced white-label customization**, and **complete student academic history tracking**.
 
 ## System Hierarchy and Access Control
 
 ### Platform Ownership Structure
 
-- **Platform Owner/System Owner**: Highest level access controlling entire SaaS platform
-- **Tenant Owner/Network Administrator**: Manages multiple schools within tenant network
-- **School Administrator/Principal**: Controls single school operations and settings
-- **Department Head/Coordinator**: Manages specific academic departments or programs
-- **Teacher/Educator**: Classroom-level access for teaching and assessment
-- **Student**: Access to personal academic information and learning resources
-- **Parent/Guardian**: Monitor child's progress and communicate with school
+- **Platform Owner/System Owner**: Highest level access controlling entire SaaS platform, white-label configurations, and student data analytics
+- **Tenant Owner/Network Administrator**: Manages multiple schools within tenant network with consolidated student progression reports
+- **School Administrator/Principal**: Controls single school operations, white-label branding, and student academic transitions
+- **Department Head/Coordinator**: Manages specific academic departments with grade progression oversight
+- **Teacher/Educator**: Classroom-level access with student history viewing for informed instruction
+- **Student**: Access to personal academic information, learning resources, and complete academic timeline
+- **Parent/Guardian**: Monitor child's progress, academic history, and communicate with school
 - **Support Staff**: Limited access based on role (finance, admin, etc.)
 
 ### Role-Based Permissions Matrix
@@ -27,1044 +27,463 @@ Platform Owner:
 ├── Language Pack Administration
 ├── Pricing & Billing Control
 ├── System Configuration
-└── Cross-tenant Data Access
+├── Cross-tenant Data Access
+└── ✅ White-Label Plan Management
 
 Tenant Owner:
 ├── School Management
 ├── Tenant-wide Policies
 ├── Consolidated Reporting
 ├── Resource Allocation
-└── Quality Standards
+├── Quality Standards
+└── ✅ Cross-School Student History Analytics
 
 School Administrator:
 ├── Staff Management
 ├── Student Enrollment
 ├── Academic Configuration
 ├── School-specific Settings
-└── Parent Communication
+├── Parent Communication
+├── ✅ White-Label Branding Control
+└── ✅ Student Academic Progression Management
 ```
 
 ## I. Core System Architecture
 
 ### Multi-Tenant Network Management
 
-- **Tenant Network Dashboard**: Centralized oversight of all schools with real-time KPI monitoring
+- **Tenant Network Dashboard**: Centralized oversight of all schools with real-time KPI monitoring and student progression analytics
 - **School-Level Customization**: Individual school branding, policies, and configuration within tenant standards
-- **Data Isolation**: Secure tenant separation while enabling consolidated reporting
+- **✅ White-Label Domain Management**: Custom domain setup with SSL certificate automation and brand consistency
+- **Data Isolation**: Secure tenant separation while enabling consolidated reporting and cross-school student tracking
 - **Scaling Infrastructure**: Cloud-native architecture supporting 100,000+ concurrent users
-- **Cross-School Analytics**: Comparative performance metrics and benchmarking across tenant locations
+- **Cross-School Analytics**: Comparative performance metrics, benchmarking, and student mobility tracking across tenant locations
 
 ### Indonesian Compliance Framework
 
-- **NISN Integration**: National Student Identification Number management and synchronization
-- **DAPODIK Connectivity**: Real-time synchronization with Indonesia's Basic Education Data system
-- **Kurikulum Merdeka Support**: Alignment with Indonesia's independent curriculum standards
-- **Ministry Reporting**: Automated compliance reporting to Ministry of Education and Ministry of Religious Affairs
+- **NISN Integration**: National Student Identification Number management and synchronization with academic history preservation
+- **DAPODIK Connectivity**: Real-time synchronization with Indonesia's Basic Education Data system including student progression data
+- **Kurikulum Merdeka Support**: Alignment with Indonesia's independent curriculum standards with competency tracking
+- **Ministry Reporting**: Automated compliance reporting with comprehensive student academic journey data
 - **Data Localization**: Indonesian data residency compliance with cross-border transfer controls
 
-## II. Student Data Management System
+## II. ✅ Advanced White-Label System
+
+### Comprehensive White-Label Architecture
+
+**Multi-Tier White-Label Options:**
+
+```
+Basic White-Label (Rp 2,500,000 setup + Rp 1,500,000/month):
+├── Custom logo and color scheme
+├── Hide platform branding
+├── Custom login page design
+├── Basic email template customization
+└── Subdomain customization
+
+Premium White-Label (Rp 5,000,000 setup + Rp 3,000,000/month):
+├── All Basic features
+├── Custom domain with SSL (www.sekolah.sch.id)
+├── Complete CSS customization
+├── Custom email templates
+├── Mobile app icon customization
+├── Custom SEO settings
+└── Priority white-label support
+
+Enterprise White-Label (Rp 10,000,000 setup + Rp 5,000,000/month):
+├── All Premium features
+├── Mobile app white-label branding
+├── Custom notification templates
+├── Advanced domain management
+├── Multiple domain support
+├── Custom integrations
+├── Dedicated account manager
+└── 24/7 white-label support
+```
+
+### White-Label Management System
+
+**Platform Owner Controls:**
+
+- **White-Label Plan Administration**: Create and manage different white-label tiers with flexible pricing
+- **Domain Verification System**: Automated DNS verification with multiple verification methods (TXT, CNAME, File Upload)
+- **SSL Certificate Management**: Automatic Let's Encrypt integration with renewal tracking
+- **Brand Asset Repository**: Centralized management of school logos, color schemes, and branding elements
+- **Template Customization Engine**: Visual editor for login pages, email templates, and mobile app themes
+
+**School-Level Customization:**
+
+- **Visual Brand Builder**: Drag-and-drop interface for complete brand customization
+- **Domain Configuration**: Easy setup of custom domains with guided DNS configuration
+- **Multi-Channel Branding**: Consistent branding across web, mobile, email, and print materials
+- **SEO Optimization**: Custom meta tags, descriptions, and keywords for enhanced search visibility
+- **Social Media Integration**: Branded social media links and sharing capabilities
+
+### Advanced White-Label Features
+
+**Custom Domain Management:**
+
+```javascript
+// Example domain configuration
+const whiteLabelConfig = {
+  domains: {
+    primary: "www.sekolahku.sch.id",
+    redirects: ["sekolahku.sch.id", "portal.sekolahku.sch.id"],
+    sslEnabled: true,
+    sslProvider: "letsencrypt",
+    sslExpiry: "2025-12-31",
+  },
+  branding: {
+    primaryColor: "#1e40af",
+    secondaryColor: "#64748b",
+    logo: "https://cdn.sekolah.com/logo.png",
+    favicon: "https://cdn.sekolah.com/favicon.ico",
+    fontFamily: "Inter, sans-serif",
+  },
+  features: {
+    hidePlatformBranding: true,
+    customLoginPage: true,
+    customEmailTemplates: true,
+    mobileAppBranding: true,
+    customCSSSupport: true,
+  },
+};
+```
+
+**Mobile App White-Labeling:**
+
+- **Custom App Icons**: School-specific app icons for iOS and Android
+- **Splash Screen Branding**: Custom loading screens with school branding
+- **In-App Theme Customization**: Complete color scheme and typography control
+- **Custom App Store Listings**: School-specific app descriptions and screenshots
+- **Push Notification Branding**: Branded notification templates and icons
+
+## III. ✅ Comprehensive Student Academic History System
+
+### Complete Academic Journey Tracking
+
+**Enhanced Enrollment System:**
+
+```prisma
+// Advanced enrollment tracking with complete history
+model Enrollment {
+  // Basic enrollment information
+  studentId      String
+  academicYearId String
+  gradeId        String
+  classId        String
+  enrollmentDate DateTime
+  completionDate DateTime?
+
+  // ✅ Enhanced academic progression tracking
+  isPromotion    Boolean          // Is this a promotion from previous grade?
+  previousGradeId String?         // Previous grade for promotion tracking
+  promotionType  PromotionType    // REGULAR, ACCELERATED, RETAINED, CONDITIONAL
+
+  // ✅ Academic performance context
+  finalGPA       Decimal?         // GPA at end of this enrollment period
+  completionNote String?          // Notes about completion status
+
+  // ✅ Approval workflow
+  approvedBy     String?          // Who approved this enrollment/promotion
+  approvedAt     DateTime?        // When it was approved
+}
+
+enum PromotionType {
+  REGULAR     // Normal grade progression
+  ACCELERATED // Skip grade / acceleration program
+  RETAINED    // Repeat grade
+  CONDITIONAL // Promoted with conditions
+}
+```
+
+### Advanced Academic History Features
+
+**Student Progression Analytics:**
+
+- **Complete Academic Timeline**: Visual timeline showing all academic years, grades, and classes
+- **Grade Progression Patterns**: Analysis of normal vs. accelerated vs. retained progressions
+- **Performance Correlation**: Link academic performance to promotion decisions
+- **Intervention Tracking**: Record academic interventions and their outcomes
+- **Transfer History**: Complete record of school transfers with academic context
+
+**Academic Transition Management:**
+
+```typescript
+// Example student history queries
+const studentAcademicHistory = {
+  // Get complete academic journey
+  getFullHistory: async (studentId: string) => {
+    return await prisma.enrollment.findMany({
+      where: { studentId },
+      include: {
+        academicYear: true,
+        grade: true,
+        class: true,
+        previousGrade: true,
+      },
+      orderBy: { enrollmentDate: "asc" },
+    });
+  },
+
+  // Analyze promotion patterns
+  getPromotionAnalysis: async (studentId: string) => {
+    return await prisma.enrollment.findMany({
+      where: {
+        studentId,
+        isPromotion: true,
+      },
+      include: {
+        grade: true,
+        previousGrade: true,
+      },
+    });
+  },
+
+  // Get current academic status
+  getCurrentEnrollment: async (studentId: string) => {
+    return await prisma.enrollment.findFirst({
+      where: {
+        studentId,
+        status: "ACTIVE",
+      },
+      include: {
+        grade: true,
+        class: true,
+        academicYear: true,
+      },
+    });
+  },
+};
+```
+
+### Academic Progression Reporting
+
+**Comprehensive History Reports:**
+
+- **Student Academic Portfolio**: Complete academic journey with performance metrics
+- **Grade Progression Analysis**: Track normal vs. exceptional academic progressions
+- **Retention and Acceleration Reports**: Monitor students requiring additional support or acceleration
+- **Cross-School Transfer Reports**: Maintain continuity for students moving between tenant schools
+- **Parent Communication**: Detailed academic history for parent-teacher conferences
+
+**Predictive Analytics:**
+
+- **At-Risk Student Identification**: Early warning systems based on academic history patterns
+- **Promotion Readiness Assessment**: Data-driven recommendations for grade advancement
+- **Academic Intervention Planning**: Targeted support based on historical performance patterns
+- **College Readiness Tracking**: Long-term academic preparation monitoring
+
+## IV. Student Data Management System
 
 ### Core Student Information
 
 - **Personal Records**: Comprehensive student profiles with NISN integration, family information, emergency contacts
-- **Academic History**: Enrollment records, grade progressions, transcripts, transfer documentation
+- **✅ Complete Academic History**: Multi-year enrollment tracking, grade progressions, promotion types, and academic transitions
 - **Health Management**: Medical records, immunization tracking, allergy alerts, medication administration
 - **Behavioral Tracking**: Incident logging, intervention tracking, positive behavior recognition
 - **Document Management**: Digital storage for birth certificates, previous school records, permissions
 
-### Indonesian-Specific Features
+### Enhanced Academic Journey Features
 
-- **Primary Language Support**: Bahasa Indonesia as default with regional dialect options
-- **Cultural Considerations**: Religious accommodation tracking, cultural event participation
-- **Family Structure**: Extended family information relevant to Indonesian social context
-- **Socioeconomic Tracking**: Scholarship eligibility and financial aid qualification management
-- **Transfer Facilitation**: Seamless movement between schools with NISN-based record transfer
-
-### School-Specific Language Configuration
-
-- **Customizable Language Sets**: Each school selects from platform-approved languages
-- **Dynamic Translation System**: Add new languages without system rebuild
-- **Per-User Language Preference**: Students, parents, and teachers can select their preferred language
-- **Document Language Options**: Generate reports and documents in any enabled language
-- **Communication Language Settings**: Automated messages sent in recipient's preferred language
-
-### Privacy and Data Protection
-
-- **Indonesian Data Protection Law Compliance**: Full GDPR-aligned privacy framework implementation
-- **Consent Management**: Parental consent systems for minors with digital signature capabilities
-- **Access Controls**: Role-based permissions with audit logging for all data access
-- **Data Retention**: Automated retention policies with secure deletion procedures
-- **Breach Response**: Comprehensive incident response and notification systems
-
-## III. Attendance Tracking System
-
-### Student Attendance Management
-
-- **Multi-Method Tracking**: RFID cards, biometric scanning, mobile app check-ins, manual entry
-- **Real-Time Monitoring**: Instant attendance updates with automatic parent notifications
-- **Pattern Analysis**: Absence trend identification with early intervention alerts
-- **Integration Points**: Direct connection to academic performance and behavioral systems
-- **Reporting Tools**: Comprehensive attendance reports for parents, teachers, and administrators
-
-### Teacher and Staff Attendance
-
-- **Professional Tracking**: Clock-in/out systems with schedule adherence monitoring
-- **Substitute Management**: Automated notification and assignment systems for coverage
-- **Leave Management**: Digital leave applications with approval workflows
-- **Performance Metrics**: Punctuality reporting and professional development tracking
-- **Payroll Integration**: Direct connection to HR and payroll systems
-
-### Indonesian Context Integration
-
-- **Religious Observance**: Prayer time accommodations and religious holiday tracking
-- **Cultural Events**: Attendance tracking for cultural and community events
-- **Government Reporting**: Attendance data synchronization with national education statistics
-- **Emergency Protocols**: Crisis communication and accountability procedures
-
-## IV. Teacher and Staff Management Features
-
-### Human Resources Management
-
-- **Profile Management**: Comprehensive teacher profiles with qualifications, certifications, and experience
-- **Certification Tracking**: Indonesian teacher certification compliance and renewal management
-- **Performance Evaluation**: Multi-faceted assessment tools with goal setting and professional development tracking
-- **Recruitment Pipeline**: Applicant tracking system with interview scheduling and onboarding workflows
-- **Professional Development**: Continuing education tracking with mandatory training compliance
-
-### Scheduling and Resource Management
-
-- **Automated Scheduling**: Intelligent timetable generation with conflict resolution and resource optimization
-- **Classroom Allocation**: Dynamic room and equipment assignment with utilization tracking
-- **Substitute Coverage**: Emergency staffing solutions with qualified substitute pools
-- **Workload Distribution**: Fair assignment distribution with overtime tracking
-- **Collaboration Tools**: Teacher collaboration spaces and resource sharing platforms
-
-### Indonesian Educational Standards
-
-- **National Curriculum Alignment**: Teacher assignment based on subject expertise and certification
-- **Cultural Competency**: Training tracking for Indonesian cultural and linguistic requirements
-- **Religious Integration**: Accommodation for religious practices and education integration
-- **Community Engagement**: Parent-teacher interaction facilitation and community involvement tracking
-
-## V. Comprehensive Financial Management System with Advanced Per-Student Subscription & Installment Support
-
-### Revolutionary Per-Student Subscription Model
-
-**Fair & Scalable Pricing Structure:**
-The platform implements an innovative per-student subscription model that ensures fair pricing for all tenant sizes while providing sustainable revenue growth. This model eliminates artificial limits and provides transparent, value-based pricing.
-
-**Tiered Per-Student Pricing:**
+**Academic Timeline Visualization:**
 
 ```
-Essential Tier (1-500 students):    Rp 15,000/student/month
-Professional Tier (501-2,000):      Rp 12,000/student/month
-Enterprise Tier (2,001-5,000):      Rp 10,000/student/month
-Enterprise Plus (5,001+):           Rp 8,000/student/month
+Student: Ahmad Fauzi (NISN: 1234567890)
+Academic Journey Timeline:
+
+2020/2021 - TK B    [COMPLETED] ✅ Regular Promotion
+2021/2022 - Kelas 1A [COMPLETED] ✅ Regular Promotion
+2022/2023 - Kelas 2B [COMPLETED] ⚡ Accelerated (Skipped Kelas 2A)
+2023/2024 - Kelas 4A [COMPLETED] 🔄 Retained (Academic Support)
+2024/2025 - Kelas 4B [ACTIVE]   📚 Current Enrollment
 ```
 
-**Real-World Pricing Examples:**
+**Academic Performance Integration:**
 
-- Small School (350 students): Rp 5.25 million/month
-- Medium Tenant (1,200 students): Rp 14.4 million/month
-- Large Enterprise (6,500 students): Rp 52 million/month
+- **Grade-Level Competency Tracking**: Monitor mastery of curriculum standards across years
+- **Learning Outcome Progression**: Track skill development over multiple academic years
+- **Intervention History**: Complete record of academic support and outcomes
+- **Achievement Portfolio**: Multi-year collection of academic and extracurricular achievements
 
-**Subscription Features by Tier:**
+### Indonesian-Specific Academic Features
 
-_Essential Package (1-500 students):_
+- **Kurikulum Merdeka Progression**: Track P5 (Projek Penguatan Profil Pelajar Pancasila) development over time
+- **Character Development Timeline**: Monitor Profil Pelajar Pancasila growth across academic years
+- **Religious Education Progression**: Track Islamic studies or religious education advancement
+- **Cultural Competency Development**: Monitor Indonesian cultural education and local content mastery
 
-- Complete student management system
-- Attendance tracking and reporting
-- Parent communication platform
-- Basic installment payment system
-- Mobile apps for all users
-- 2 languages included
-- Unlimited schools and teachers
+## V. Enhanced Financial Management with White-Label Billing
 
-_Professional Package (501-2,000 students):_
+### White-Label Financial Integration
 
-- All Essential features
-- Advanced analytics and reporting
-- LMS integration capabilities
-- Advanced installment management
-- Custom report card builder
-- API access for integrations
-- Email support
-- 2 languages included
+**Custom Billing Branding:**
 
-_Enterprise Package (2,001-5,000 students):_
+- **Branded Invoices**: School-branded invoices and payment receipts
+- **Custom Payment Pages**: White-labeled payment portals with school branding
+- **Branded Financial Communications**: Custom templates for payment reminders and receipts
+- **School-Specific Payment Methods**: Integration with school's preferred payment gateways
 
-- All Professional features
-- White-label customization options
-- Advanced security features
-- Priority support with dedicated account manager
-- Custom integrations
-- 3 languages included (1 additional free)
-
-_Enterprise Plus Package (5,001+ students):_
-
-- All Enterprise features
-- Custom development services
-- SLA guarantees and 24/7 support
-- On-premise deployment options
-- Custom training programs
-- 5 languages included (3 additional free)
-
-### Enhanced Fee Management and Collection
-
-- **Dynamic Fee Structure**: Configurable fee categories including tuition, registration, technology, and activity fees
-- **Advanced Payment Processing**: Integration with Indonesian payment systems including GoPay, OVO, DANA, and bank transfers
-- **Comprehensive Installment System**: Revolutionary flexible payment plans supporting 1-100+ installments with automated scheduling
-- **Intelligent Late Fee Processing**: Automatic penalty calculation with grace periods and escalation procedures
-- **Multi-Child Discounts**: Family-based fee calculations and bulk payment options
-
-### Revolutionary Installment Payment System
-
-**Flexible Installment Plans:**
-
-- **Configurable Terms**: 1-100+ installment options (monthly, quarterly, semester, annual)
-- **Interest Rate Management**: Variable interest rates per installment plan (0-25% annual)
-- **Down Payment Options**: Configurable minimum down payment (0-50% of total)
-- **Grace Period Support**: Late payment grace periods (0-30 days) before penalties
-- **Partial Payment Acceptance**: Allow partial installment payments with automatic tracking
-
-**Real-World Installment Examples:**
+**White-Label Pricing Structure:**
 
 ```
-Uang Gedung Rp 100,000,000:
-├── Option 1: Cash Payment (0% interest, 5% discount)
-├── Option 2: 6 Monthly Installments (2% annual interest)
-├── Option 3: 12 Monthly Installments (3% annual interest)
-├── Option 4: 24 Monthly Installments (5% annual interest)
-└── Option 5: Custom Plan (Negotiated terms)
-
-SPP Bulanan Rp 2,500,000:
-├── Monthly Payment (Standard)
-├── Quarterly Payment (2% discount)
-├── Semester Payment (5% discount)
-└── Annual Payment (10% discount)
+White-Label Billing Integration:
+├── Basic: Branded invoices and receipts
+├── Premium: Custom payment portal + branded emails
+├── Enterprise: Complete payment system white-labeling
+└── Custom: Dedicated payment gateway integration
 ```
 
-**Automated Installment Processing:**
+### Per-Student Subscription with Academic History
 
-- **Smart Scheduling**: Automatic installment generation based on plan configuration
-- **Payment Tracking**: Real-time tracking of paid/pending/overdue installments
-- **Balance Management**: Automatic calculation of remaining balance after each payment
-- **Interest Calculation**: Compound or simple interest with pro-rated calculations
-- **Late Fee Application**: Automatic late fees with customizable penalty structures
+**History-Informed Billing:**
 
-**Parent-Friendly Payment Interface:**
+- **Long-Term Student Tracking**: Billing based on complete student enrollment history
+- **Transfer Student Handling**: Fair billing for mid-year transfers with academic context
+- **Retention Impact Analysis**: Billing adjustments for grade retention scenarios
+- **Academic Year Continuity**: Seamless billing across multi-year academic journeys
 
-- **Payment Calendar**: Visual calendar showing all upcoming installments
-- **Multiple Payment Methods**: Bank transfer, e-wallet, credit card, cash payments
-- **Payment Reminders**: Automated SMS/email/WhatsApp reminders (7, 3, 1 days before due)
-- **Early Payment Incentives**: Discounts for paying installments early
-- **Payment History**: Complete transaction history with receipts and tax documents
+## VI. Advanced Technology Features
 
-### Advanced Financial Analytics and Reporting
+### White-Label Technology Stack
 
-**Per-Student Subscription Analytics:**
+**Custom Domain Infrastructure:**
 
-- **Real-Time Student Count**: Live tracking across all tenant schools
-- **Tier Performance Metrics**: Monitor tenant distribution across pricing tiers
-- **Revenue Per Student**: Track average revenue per student across different tiers
-- **Growth Forecasting**: Predict revenue growth based on enrollment trends
-- **Churn Analysis**: Monitor tenant retention and identify at-risk accounts
+- **Automated SSL Management**: Automatic certificate provisioning and renewal
+- **CDN Integration**: Global content delivery with school-specific caching
+- **DNS Management**: Comprehensive domain configuration with health monitoring
+- **Multi-Domain Support**: Support for multiple school domains and subdomains
 
-**Installment Performance Metrics:**
+**Academic History Analytics Engine:**
 
-- **Collection Efficiency**: Track payment rates across different installment plans
-- **Default Risk Analysis**: Identify at-risk installment accounts with early warning systems
-- **Cash Flow Forecasting**: Predict incoming payments based on installment schedules
-- **Plan Optimization**: Analytics on most popular installment terms and optimal pricing
-- **Revenue Recognition**: Proper accounting treatment of installment revenues
+- **Machine Learning Progression Prediction**: AI-powered academic outcome prediction
+- **Pattern Recognition**: Identify successful academic intervention patterns
+- **Cross-School Benchmarking**: Compare student progression across tenant schools
+- **Predictive Retention Modeling**: Early identification of at-risk students
 
-**Financial Dashboard Features:**
+### Enhanced Mobile Applications
 
-- **Real-Time Collection Status**: Live updates on daily/weekly/monthly collections
-- **Student-Based Revenue Tracking**: Monitor revenue per student across different tiers
-- **Aging Analysis**: Track overdue installments by 30/60/90+ day categories
-- **Payment Trend Analysis**: Seasonal payment patterns and optimization opportunities
-- **Family Financial Health**: Comprehensive view of each family's payment history
-- **Profitability Analysis**: Impact of installment terms on overall school profitability
+### Student Mobile App with Academic History
 
-### Automated Billing & Usage Tracking
+- **Academic Timeline View**: Complete academic journey visualization
+- **Progress Tracking**: Real-time progress against historical performance
+- **Achievement Gallery**: Multi-year collection of academic and personal achievements
+- **Goal Setting**: Set academic goals based on historical data and progression patterns
 
-**Real-Time Student Count Monitoring:**
+### Parent Mobile App with Enhanced Tracking
 
-- **Live Enrollment Tracking**: Automatic student count updates across all schools
-- **Monthly Usage Snapshots**: Detailed usage reports for accurate billing
-- **Tier Calculation**: Automatic pricing tier determination based on student count
-- **Prorated Billing**: Handle mid-month enrollment changes fairly
-- **Growth Alerts**: Notify tenants when approaching tier boundaries
+- **Complete Academic Overview**: Full visibility into child's academic journey
+- **✅ White-Label Branding**: School-branded mobile app experience
+- **Historical Performance Analysis**: Track academic trends and improvements over time
+- **Milestone Celebrations**: Automated notifications for academic achievements and progressions
 
-**Transparent Billing Breakdown:**
+## VII. Advanced Reporting and Analytics
 
-- **Per-Student Charges**: Clear breakdown of base subscription costs
-- **Language Add-On Fees**: Separate charges for additional languages beyond included quota
-- **Premium Feature Costs**: Transparent pricing for white-label, API access, and other premium features
-- **Usage-Based Charges**: Fair billing for additional storage, API calls, and other resources
-- **Historical Billing**: Complete billing history with detailed breakdowns
+### White-Label Reporting System
 
-### Indonesian Financial Compliance
+**Custom Report Branding:**
 
-- **SAK Compliance**: Multi-tier accounting standards support (SAK, SAK ETAP, PSAK Syariah, PSAK EMKM)
-- **Tax Management**: Automated VAT calculations, withholding tax compliance, and regulatory reporting
-- **Financial Reporting**: Comprehensive financial statements meeting Indonesian audit requirements
-- **Currency Management**: Rupiah processing with multi-currency support for international students
-- **Banking Integration**: SNAP-compliant open banking integration with major Indonesian banks
+- **School-Branded Reports**: All reports feature school logos, colors, and branding
+- **Custom Report Templates**: School-specific report layouts and formats
+- **Branded Export Options**: PDF reports with complete school branding
+- **White-Label Analytics Dashboards**: Fully branded analytics interfaces
 
-### Tenant Financial Consolidation
+### Academic History Analytics
 
-- **Multi-Entity Reporting**: Automated consolidation across all tenant locations
-- **Per-Student Cost Analysis**: Detailed cost breakdown per student across all schools
-- **Intercompany Eliminations**: Automatic removal of internal transactions for clean reporting
-- **Budget Planning**: Centralized budgeting with school-level customization and variance analysis
-- **Performance Analytics**: Real-time financial dashboards with KPI tracking and forecasting
-- **Audit Trail**: Comprehensive transaction logging for compliance and audit purposes
+**Comprehensive Student Journey Reports:**
 
-### Advanced Financial Features
+- **Multi-Year Academic Portfolios**: Complete academic journey documentation
+- **Progression Pattern Analysis**: Identify trends in student academic development
+- **Intervention Effectiveness Reports**: Track success of academic support programs
+- **Cross-Grade Performance Correlation**: Analyze performance patterns across grade levels
 
-- **Scholarship Management**: Automated financial aid processing with eligibility verification
-- **Volume Discount Management**: Automatic application of tiered pricing discounts
-- **Family Account Consolidation**: Multiple children billing optimization
-- **Vendor Management**: Procurement tracking with payment automation and compliance monitoring
-- **Investment Tracking**: Education fund management with performance reporting
-- **Cost Analysis**: Per-student cost calculation with optimization recommendations
-- **Revenue Forecasting**: Predictive analytics for enrollment and revenue planning
+**Predictive Academic Analytics:**
 
-### Platform Owner Revenue Optimization
+- **Graduation Readiness Prediction**: Long-term academic preparation assessment
+- **College Preparation Tracking**: Multi-year readiness for higher education
+- **Career Pathway Identification**: Academic strength analysis for career guidance
+- **Learning Difficulty Early Detection**: Identify potential learning challenges early
 
-**Subscription Revenue Analytics:**
+## VIII. Implementation Strategy
 
-- **Tenant Distribution Analysis**: Monitor tenant spread across pricing tiers
-- **Revenue Per Student Tracking**: Track platform-wide revenue efficiency
-- **Tier Migration Patterns**: Understand how tenants move between pricing tiers
-- **Churn Prevention**: Early warning systems for at-risk subscriptions
-- **Growth Opportunities**: Identify expansion opportunities within existing tenants
+### White-Label Deployment Process
 
-**Pricing Strategy Tools:**
+**Phase 1: Basic White-Label Setup (Week 1-2)**
 
-- **Competitive Analysis**: Market positioning relative to competitors
-- **Price Elasticity Testing**: A/B testing for optimal pricing points
-- **Feature Value Analysis**: Understand which features drive tier upgrades
-- **Regional Pricing Optimization**: Adjust pricing based on regional economic conditions
-- **Seasonal Adjustment Capabilities**: Flexible pricing for enrollment seasons
-
-### Installment System Integration
-
-**Student Information System Integration:**
-
-- **Enrollment-Based Billing**: Automatic fee assignment upon student enrollment
-- **Academic Status Integration**: Payment status affects academic services access
-- **Family Account Management**: Consolidated billing for multiple children
-- **Withdrawal Processing**: Proper installment handling for student withdrawals
-
-**Communication System Integration:**
-
-- **Payment Notifications**: Automated payment confirmations and receipts
-- **Overdue Alerts**: Escalating reminder system for late payments
-- **Parent Portal Integration**: Real-time payment status in parent mobile app
-- **Staff Notifications**: Alert teachers/admin about student payment issues
-
-## VI. Learning Management System Integration
-
-### Primary LMS Integrations
-
-- **Google Classroom**: Comprehensive integration with course management, assignment distribution, and grade synchronization
-- **Microsoft Teams for Education**: Class team creation, Office 365 integration, and collaborative learning tools
-- **Moodle Integration**: Open-source LMS connectivity with custom plugin development capabilities
-- **Canvas LMS**: Enterprise-grade integration with comprehensive API support
-- **Local LMS Platforms**: Integration with Indonesian educational technology providers
-
-### Integration Capabilities
-
-- **Single Sign-On (SSO)**: Seamless authentication across all platforms with role-based access
-- **Grade Passback**: Automatic grade synchronization between LMS and student information systems
-- **Roster Synchronization**: Real-time student enrollment updates across all integrated platforms
-- **Content Sharing**: Centralized content management with multi-platform distribution
-- **Analytics Aggregation**: Unified learning analytics from multiple LMS sources
-
-### Advanced Learning Features
-
-- **Adaptive Learning**: AI-powered content recommendations based on student performance
-- **Competency Tracking**: Skill-based assessment aligned with Indonesian curriculum standards
-- **Collaborative Learning**: Peer-to-peer learning facilitation with group project management
-- **Virtual Classroom**: Integrated video conferencing with attendance tracking and recording
-- **Mobile Learning**: Offline content access with synchronization capabilities
-
-## VII. Multi-School Tenant Management
-
-### Centralized Operations
-
-- **Network Dashboard**: Real-time overview of all tenant locations with key performance indicators
-- **Standardization Tools**: Template management for policies, procedures, and educational standards
-- **Quality Assurance**: Uniform assessment tools and benchmarking across all schools
-- **Brand Management**: Consistent branding implementation with local customization options
-- **Communication Hub**: Centralized communication platform for tenant network coordination
-
-### Tenant-Specific Features
-
-- **Revenue Sharing**: Automated calculation and distribution of tenant fees and royalties
-- **Performance Benchmarking**: Comparative analytics across schools with best practice identification
-- **Resource Optimization**: Shared resource allocation and bulk purchasing coordination
-- **Training Management**: Centralized professional development with school-specific delivery
-- **Compliance Monitoring**: Automated tenant agreement compliance tracking and reporting
-
-### Scalability and Growth
-
-- **New School Onboarding**: Streamlined setup process for new tenant locations
-- **Market Analysis**: Territory analysis and expansion planning tools
-- **Capacity Planning**: Infrastructure scaling recommendations based on enrollment projections
-- **Technology Standardization**: Unified technology stack deployment across all locations
-- **Support Systems**: Tiered support structure with tenant-wide knowledge base
-
-## VIII. Mobile Application Suite
-
-### Student Mobile App
-
-- **Academic Dashboard**: Grade tracking, assignment submissions, and progress monitoring
-- **Course Materials**: Offline content access with multimedia support and note-taking capabilities
-- **Communication**: Direct messaging with teachers and participation in discussion forums
-- **Self-Service**: Profile management, course enrollment, and fee payment processing
-- **Payment Management**: View installment schedules, make payments, and track payment history
-- **Engagement**: Achievement tracking, peer collaboration, and extracurricular activity management
-
-### Parent Mobile App
-
-- **Real-Time Monitoring**: Live attendance updates, grade notifications, and behavioral reports
-- **Communication Hub**: Direct messaging with teachers, school announcements, and emergency alerts
-- **Enhanced Financial Management**:
-  - **Installment Dashboard**: Complete view of all payment plans and schedules
-  - **Payment Processing**: Easy payment of installments with multiple payment methods
-  - **Payment History**: Detailed transaction history with receipt downloads
-  - **Balance Tracking**: Real-time view of outstanding balances and upcoming payments
-  - **Payment Reminders**: Customizable notification preferences for due dates
-- **Scheduling**: Parent-teacher conference booking and event registration
-- **Multi-Language Interface**: Dynamic language switching based on parent's preference
-- **Language-Specific Content**: Announcements and reports available in all school-enabled languages
-
-### Teacher Mobile App
-
-- **Classroom Management**: Mobile attendance marking, grade book access, and student progress tracking
-- **Communication Tools**: Parent messaging, student announcements, and colleague collaboration
-- **Content Management**: Assignment creation, resource sharing, and multimedia content integration
-- **Professional Development**: Training module access and certification tracking
-- **Student Financial Status**: Quick view of student payment status for academic service decisions
-- **Language Tools**: Quick translation features and multilingual content creation
-- **Emergency Features**: Crisis communication protocols and emergency contact systems
-
-### Administrator Mobile App
-
-- **Executive Dashboard**: Key performance indicators, enrollment metrics, and financial summaries
-- **Advanced Financial Analytics**:
-  - **Per-Student Revenue Dashboard**: Real-time view of revenue per student across all tenants
-  - **Subscription Tier Analytics**: Monitor tenant distribution and tier migration patterns
-  - **Collection Dashboard**: Real-time view of payment collections and outstanding amounts
-  - **Installment Performance**: Track success rates of different payment plans
-  - **Cash Flow Projections**: Forecast incoming payments based on installment schedules
-  - **Student Growth Tracking**: Monitor enrollment trends and revenue impact
-  - **Default Risk Management**: Monitor at-risk accounts and intervention opportunities
-- **Communication Management**: Mass notification systems and community engagement tools
-- **Operational Oversight**: Staff management, resource allocation, and compliance monitoring
-- **Analytics Access**: Real-time reporting and predictive analytics for decision making
-- **Language Administration**: Configure school languages and monitor usage statistics
-- **Crisis Management**: Emergency response coordination and communication protocols
-
-## IX. Advanced Technology Features
-
-### Artificial Intelligence and Analytics
-
-- **Predictive Analytics**: Early warning systems for at-risk students with intervention recommendations
-- **Per-Student Subscription Optimization**:
-  - **Optimal Tier Recommendations**: AI suggests best pricing tiers based on tenant growth patterns
-  - **Student Growth Prediction**: Forecast enrollment changes and tier transitions
-  - **Revenue Optimization**: Predict optimal pricing strategies for maximum retention and growth
-- **Financial Predictive Modeling**:
-  - **Payment Default Prediction**: AI models to identify students at risk of payment default
-  - **Optimal Installment Plan Recommendations**: Suggest best payment plans based on family financial profiles
-  - **Cash Flow Optimization**: Predict and optimize cash flow based on installment patterns
-- **Learning Analytics**: Personalized learning path optimization based on student performance data
-- **Operational Intelligence**: Resource optimization and efficiency improvement recommendations
-- **Chatbot Support**: AI-powered customer service for parents, students, and staff
-- **Automated Reporting**: Intelligent report generation with natural language insights
-
-### Real-Time Communication
-
-- **WebSocket Integration**: Live messaging, notifications, and collaborative features
-- **Video Conferencing**: Integrated virtual classroom capabilities with recording and playback
-- **Push Notifications**: Multi-channel notification delivery across all user devices
-- **Emergency Alerts**: Instant crisis communication with location-based targeting
-- **Payment Notifications**: Real-time payment confirmations and installment reminders
-- **Community Features**: Discussion forums, peer collaboration, and social learning tools
-
-### Security and Compliance
-
-- **Multi-Factor Authentication**: Enhanced security for administrative and sensitive data access
-- **Encryption Standards**: End-to-end encryption for all communications and data storage
-- **Financial Data Security**: PCI DSS compliance for payment processing and financial data
-- **Audit Logging**: Comprehensive activity tracking with compliance reporting capabilities
-- **Data Backup**: Automated backup systems with disaster recovery procedures
-- **Penetration Testing**: Regular security assessments and vulnerability management
-
-## X. Reporting and Analytics Suite
-
-### Academic Analytics
-
-- **Student Performance**: Individual and cohort tracking with trend analysis and predictive modeling
-- **Curriculum Effectiveness**: Learning outcome assessment with curriculum optimization recommendations
-- **Teacher Performance**: Faculty effectiveness metrics with professional development recommendations
-- **Institutional Metrics**: Retention rates, graduation statistics, and academic achievement benchmarks
-
-### Operational Analytics
-
-- **Financial Performance**: Revenue analysis, cost optimization, and budget variance reporting
-- **Per-Student Subscription Analytics**:
-  - **Revenue Per Student Tracking**: Monitor platform-wide revenue efficiency by tier
-  - **Tier Distribution Analysis**: Track tenant spread across pricing tiers
-  - **Student Growth Impact**: Analyze revenue impact of enrollment changes
-  - **Subscription Churn Analysis**: Monitor tenant retention and identify at-risk subscriptions
-  - **Tier Migration Patterns**: Understand tenant movement between pricing tiers
-- **Advanced Payment Analytics**:
-  - **Installment Success Metrics**: Track completion rates of different payment plans
-  - **Collection Efficiency Reports**: Analyze payment collection performance over time
-  - **Default Risk Assessment**: Identify patterns and risk factors in payment defaults
-  - **Revenue Recognition Analysis**: Proper accounting of installment-based revenues
-- **Resource Utilization**: Facility usage, equipment efficiency, and capacity optimization
-- **Staff Analytics**: Productivity metrics, workload distribution, and performance benchmarking
-- **Parent Engagement**: Communication effectiveness, satisfaction metrics, and engagement trends
-
-### Tenant Analytics
-
-- **Network Performance**: Cross-school comparison with best practice identification
-- **Per-Student Cost Analysis**: Detailed cost efficiency metrics across tenant schools
-- **Student Growth Tracking**: Monitor enrollment trends and their impact on revenue
-- **Market Analysis**: Territory performance, competitive analysis, and growth opportunities
-- **Quality Metrics**: Standardization compliance, brand consistency, and quality assurance
-- **Financial Consolidation**: Multi-entity reporting with profitability analysis by location
-- **Subscription Optimization**: Track payment plan performance and tier transitions
-- **Payment Plan Performance**: Compare installment success rates across different tenant schools
-
-### Self-Service Analytics
-
-- **Dashboard Builder**: Drag-and-drop interface for custom dashboard creation
-- **Report Generator**: User-friendly report creation with scheduling and distribution
-- **Data Visualization**: Interactive charts, graphs, and infographics for easy interpretation
-- **Export Capabilities**: Multiple format support for external analysis and presentation
-
-## XI. Integration and Technical Infrastructure
-
-### System Integration Points
-
-- **Banking APIs**: Direct integration with Indonesian banking systems for payment processing
-- **Payment Gateway Integration**: Comprehensive integration with local and international payment processors
-- **Government Systems**: NISN, DAPODIK, and Ministry reporting system connectivity
-- **Third-Party LMS**: Comprehensive API integration with major learning management systems
-- **Communication Platforms**: Email, SMS, WhatsApp Business API, and social media integration
-- **Accounting Systems**: ERP integration for comprehensive financial management
-
-### Technical Architecture
-
-- **Cloud Infrastructure**: Scalable AWS/GCP deployment with Indonesian data residency compliance
-- **Microservices Design**: Modular architecture enabling independent scaling and updates
-- **API-First Approach**: RESTful and GraphQL APIs enabling seamless third-party integrations
-- **Real-Time Processing**: WebSocket and event-driven architecture for live updates
-- **Mobile-First Design**: Progressive web application with native mobile app capabilities
-
-### Performance and Reliability
-
-- **99.9% Uptime**: High availability architecture with redundancy and failover capabilities
-- **Sub-Second Response**: Optimized performance for 100,000+ concurrent users
-- **Scalable Storage**: Unlimited storage capacity with intelligent data archiving
-- **Global CDN**: Fast content delivery across Indonesia's diverse geographic regions
-- **Disaster Recovery**: Comprehensive backup and recovery procedures with RTO/RPO guarantees
-
-## XII. Flexible Report Card System
-
-### Dynamic Report Card Builder
-
-- **Visual Report Designer**: Drag-and-drop interface with real-time preview for creating custom report layouts
-- **Column-Level Customization**: Add, remove, reorder columns with custom widths and formulas
-- **Template Management**: Hierarchical template system supporting tenant-wide and school-specific formats
-- **Multi-Format Support**: Academic reports, P5 assessments, character building reports in one system
-
-### Indonesian Curriculum Compliance
-
-- **Kurikulum Merdeka Support**: Built-in templates for P5 (Projek Penguatan Profil Pelajar Pancasila) assessments
-- **Multi-Level Templates**: Different formats for TK/PG, SD, SMP, SMA with level-specific requirements
-- **Dynamic Dimensions**: Flexible dimension selection for P5 (Beriman, Berkebinekaan, Gotong Royong, etc.)
-- **Narrative Assessment Tools**: Dotted-line formats, text blocks, and rubric options for descriptive evaluations
-
-### Advanced Customization Features
-
-- **Smart Formula Builder**: Custom calculation methods per school (NH*0.2 + NT*0.2 + UTS*0.3 + UAS*0.3)
-- **Section Management**: Add custom sections like Tahfidz Progress, Character Building, Muatan Lokal
-- **Conditional Logic**: Show/hide elements based on grade level, program, or assessment type
-- **Layout Flexibility**: Portrait/landscape, custom margins, flexible positioning of elements
-
-### Content Management Tools
-
-- **Phrase Library**: Pre-built assessment phrases organized by dimension and competency
-- **AI-Assisted Writing**: Smart suggestions for narrative assessments based on student performance
-- **Collaborative Editing**: Multiple teachers can contribute to student assessments
-- **Version Control**: Track changes and maintain history of report modifications
-
-### Import and Migration
-
-- **Excel Template Import**: Upload existing report formats for automatic conversion
-- **Smart Mapping**: AI-powered field recognition and data mapping
-- **Bulk Migration**: Transfer historical data while preserving formatting
-- **Format Preservation**: Maintain school's unique visual identity and layout preferences
-
-### Quality Assurance
-
-- **Validation Rules**: Min/max character limits, required fields, calculation verification
-- **Approval Workflow**: Draft → Review → Approve process with role-based permissions
-- **Consistency Checks**: Cross-reference assessments across dimensions and subjects
-- **Preview Mode**: Test reports with sample data before deployment
-
-### Output and Distribution
-
-- **Multi-Channel Delivery**: PDF generation, parent app integration, email distribution, WhatsApp sharing
-- **Batch Operations**: Generate reports for entire classes or grade levels simultaneously
-- **Digital Signatures**: Secure authentication for principals and teachers
-- **QR Code Integration**: Verification codes for report authenticity
-
-## XIII. Comprehensive Multi-Language Management System
-
-### Multi-Language System Architecture
-
-- **Flexible Language Assignment**: Platform owner can assign ANY 2 languages as base package per tenant
-- **2 Languages Included Rule**: Each tenant gets 2 languages free, regardless of which languages
-- **Additional Language Pricing**: 3rd language and beyond incur monthly fees
-- **No Mandatory Languages**: Platform owner has full flexibility in language assignment
-- **Per-Tenant Customization**: Each tenant can have completely different language combinations
-
-### Language Assignment Examples
-
-```javascript
-// Flexible 2-language base package examples
-const tenantLanguageExamples = {
-  tenantA: {
-    baseLanguages: ["id", "en"], // Indonesian + English
-    additionalLanguages: [],
-    monthlyFee: 0, // Free (only 2 languages)
-  },
-
-  tenantB: {
-    baseLanguages: ["zh", "pt"], // Chinese + Portuguese
-    additionalLanguages: [],
-    monthlyFee: 0, // Free (only 2 languages)
-  },
-
-  tenantC: {
-    baseLanguages: ["en", "nl"], // English + Dutch
-    additionalLanguages: [],
-    monthlyFee: 0, // Free (only 2 languages)
-  },
-
-  tenantD: {
-    baseLanguages: ["id", "en"], // First 2 free
-    additionalLanguages: ["zh"], // 3rd language
-    monthlyFee: 500000, // Charged for 3rd language
-  },
-
-  tenantE: {
-    baseLanguages: ["ar", "fr"], // First 2 free
-    additionalLanguages: ["en", "id", "ja"], // 3rd, 4th, 5th languages
-    monthlyFee: 2000000, // 500k + 500k + 1000k
-  },
-};
-```
-
-### Platform Owner Control Panel UI
+- Domain configuration and SSL setup
+- Basic branding implementation
+- Logo and color scheme deployment
+
+**Phase 2: Advanced Customization (Week 3-4)**
+
+- Custom CSS implementation
+- Email template customization
+- Mobile app branding
+
+**Phase 3: Full Brand Integration (Week 5-6)**
+
+- Complete system white-labeling
+- Custom domain testing
+- User acceptance testing
+
+### Academic History Migration
+
+**Data Migration Strategy:**
+
+- Historical enrollment data import
+- Academic record consolidation
+- Grade progression validation
+- Performance correlation establishment
+
+**Training and Adoption:**
+
+- Staff training on academic history features
+- Parent orientation on student timeline access
+- Teacher training on historical data usage
+- Administrator training on progression analytics
+
+## IX. Pricing Structure Enhancement
+
+### White-Label Pricing Model
 
 ```
-┌─ Language Assignment for [Tenant Name] ──────────────┐
-│                                                      │
-│ Select Languages (First 2 are FREE):                 │
-│                                                      │
-│ ☑ Indonesian (Bahasa Indonesia) ─ Free (1 of 2)    │
-│ ☑ English ──────────────────────── Free (2 of 2)    │
-│ ☐ Mandarin Chinese ────────────── +Rp 500,000/mo   │
-│ ☐ Arabic ──────────────────────── +Rp 500,000/mo   │
-│ ☐ Malay ───────────────────────── +Rp 500,000/mo   │
-│ ☐ Japanese ────────────────────── +Rp 750,000/mo   │
-│ ☐ Korean ──────────────────────── +Rp 750,000/mo   │
-│ ☐ French ──────────────────────── +Rp 750,000/mo   │
-│ ☐ German ──────────────────────── +Rp 750,000/mo   │
-│ ☐ Spanish ─────────────────────── +Rp 750,000/mo   │
-│ ☐ Portuguese ──────────────────── +Rp 1,000,000/mo │
-│ ☐ Dutch ───────────────────────── +Rp 1,000,000/mo │
-│ ☐ Russian ─────────────────────── +Rp 1,000,000/mo │
-│ ☐ Hindi ───────────────────────── +Rp 1,000,000/mo │
-│                                                      │
-│ Languages Selected: 2                                │
-│ Free Languages Used: 2/2                             │
-│ Additional Language Fee: Rp 0                        │
-│                                                      │
-│ [Save Changes] [Cancel]                              │
-└──────────────────────────────────────────────────────┘
+White-Label Add-On Pricing:
+├── Basic White-Label: +20% of base subscription
+├── Premium White-Label: +50% of base subscription
+├── Enterprise White-Label: +100% of base subscription
+└── Custom Domain Setup: Rp 2,500,000 one-time fee
 ```
 
-### Language Assignment Workflow
-
-```javascript
-// Platform Owner assigns languages with 2-free rule
-async function assignLanguagesToTenant(tenantId, selectedLanguages) {
-  const FREE_LANGUAGE_QUOTA = 2;
-
-  // Sort languages by price (to give cheaper ones free if possible)
-  const sortedLanguages = selectedLanguages.sort(
-    (a, b) => getLanguagePrice(a) - getLanguagePrice(b)
-  );
-
-  // First 2 languages are free
-  const freeLanguages = sortedLanguages.slice(0, FREE_LANGUAGE_QUOTA);
-  const chargedLanguages = sortedLanguages.slice(FREE_LANGUAGE_QUOTA);
-
-  // Calculate fee only for languages beyond the first 2
-  const monthlyLanguageFee = chargedLanguages.reduce(
-    (total, lang) => total + getLanguagePrice(lang),
-    0
-  );
-
-  // Update tenant configuration
-  await updateTenantLanguages(tenantId, {
-    allLanguages: selectedLanguages,
-    freeLanguages: freeLanguages,
-    chargedLanguages: chargedLanguages,
-    monthlyFee: monthlyLanguageFee,
-    effectiveDate: new Date(),
-  });
-
-  return {
-    totalLanguages: selectedLanguages.length,
-    freeQuotaUsed: Math.min(selectedLanguages.length, FREE_LANGUAGE_QUOTA),
-    additionalFee: monthlyLanguageFee,
-  };
-}
-```
-
-### Flexible Pricing Model
-
-```javascript
-const languagePricingModel = {
-  freeQuota: 2, // Any 2 languages are free
-
-  // Pricing when exceeding 2 languages
-  additionalLanguagePricing: {
-    // Regional languages
-    id: 500000, // Indonesian
-    ms: 500000, // Malay
-    zh: 500000, // Chinese
-    ar: 500000, // Arabic
-
-    // International languages
-    en: 500000, // English
-    ja: 750000, // Japanese
-    ko: 750000, // Korean
-    fr: 750000, // French
-    de: 750000, // German
-    es: 750000, // Spanish
-
-    // Specialized languages
-    pt: 1000000, // Portuguese
-    nl: 1000000, // Dutch
-    ru: 1000000, // Russian
-    hi: 1000000, // Hindi
-    it: 1000000, // Italian
-
-    // Custom languages
-    custom: "quote", // By request
-  },
-};
-```
-
-### Key Features of Updated System
-
-- **Maximum Flexibility**: Platform owner can assign any language combination
-- **Simple Pricing Rule**: First 2 languages always free, additional languages charged
-- **No Geographic Bias**: Indonesian/English not mandatory, schools can use any languages
-- **Fair Pricing**: Schools only pay when exceeding 2-language limit
-- **Easy to Understand**: Clear rule that applies to all tenants equally
-
-## XIV. Platform Owner Administrative System
-
-### Comprehensive Platform Management
-
-- **Tenant Lifecycle Management**: Create, suspend, or terminate tenant accounts
-- **Subscription Tier Control**: Define and modify subscription packages and features
-- **Usage Monitoring**: Real-time tracking of system resources and user activities
-- **Revenue Analytics**: Detailed financial reporting across all tenants
-- **System Health Dashboard**: Infrastructure monitoring and performance metrics
-
-### Billing and Revenue Management
-
-- **Per-Student Pricing Models**: Fair and scalable pricing based on actual student enrollment
-- **Automated Tier Calculation**: Dynamic pricing tier assignment based on student count
-- **Real-Time Usage Monitoring**: Live tracking of student counts and usage metrics across all tenants
-- **Transparent Billing**: Detailed breakdown of per-student charges, language fees, and premium features
-- **Flexible Pricing Models**: Volume discounts, seasonal adjustments, and custom enterprise pricing
-- **Automated Billing**: Monthly/annual subscription processing with local payment methods
-- **Usage-Based Charges**: Additional fees for premium features, storage, languages
-- **Revenue Sharing**: Configurable commission structures for tenant partnerships
-- **Financial Forecasting**: Predictive analytics for revenue growth and churn
-- **Prorated Billing**: Fair billing adjustments for mid-period student enrollment changes
-
-### Platform Configuration Tools
-
-- **Feature Toggles**: Enable/disable features for specific tenants or schools
-- **API Management**: Control third-party integrations and API access limits
-- **White-label Options**: Customize branding for premium tenant partners
-- **System Parameters**: Configure global settings affecting all tenants
-- **Compliance Controls**: Ensure platform-wide adherence to regulations
-
-### Support and Communication
-
-- **Multi-tier Support System**: Escalation from school to tenant to platform level
-- **Announcement Center**: Broadcast updates to all or selected tenants
-- **Feedback Collection**: Gather feature requests and satisfaction metrics
-- **Training Resources**: Manage platform-wide training materials and certifications
-- **Partner Portal**: Dedicated access for tenant owners with business metrics
-
-## XV. Enterprise-Grade Multi-Tenant Architecture
-
-### Subdomain Management System
-
-- **Automated Provisioning**: Each school gets unique subdomain (school.platform.com)
-- **Custom Domain Support**: Schools can use their own domains (sistem.school.sch.id)
-- **SSL Certificate Management**: Automated Let's Encrypt integration for all subdomains
-- **DNS Configuration**: Wildcard DNS with intelligent routing to correct tenant
-- **White-Label Options**: Complete branding customization per school
-
-### Database Architecture Strategy
-
-- **Shared Database, Separate Schema**: Optimal balance of performance and isolation
-- **PostgreSQL Schema Isolation**: Each school has completely isolated data schema
-- **Connection Pooling**: Efficient resource utilization across tenants
-- **Automatic Schema Migration**: Version-controlled database changes across all tenants
-- **Cross-Tenant Analytics**: Platform owner can analyze aggregated anonymized data
-
-### Security Implementation Layers
-
-**Network Security:**
-
-- Web Application Firewall (WAF)
-- DDoS Protection
-- Geographic restrictions per tenant
-- SSL/TLS encryption everywhere
-
-**Application Security:**
-
-- OAuth2 + JWT authentication
-- Role-Based Access Control (RBAC)
-- Tenant-isolated sessions
-- API rate limiting per school
-- Input validation and sanitization
-
-**Database Security:**
-
-- Row-level security policies
-- Encryption at rest and in transit
-- Audit logging for all queries
-- Automated security patches
-- Regular penetration testing
-
-**Data Privacy:**
-
-- GDPR-compliant architecture
-- Data residency controls
-- Right to deletion implementation
-- Automated PII detection
-- Consent management system
-
-### Performance Optimization Framework
-
-- **Multi-Layer Caching**: CDN for static assets, Redis for application cache, query result caching
-- **Database Optimization**: Intelligent indexing, query optimization, read replicas for reporting
-- **Asynchronous Processing**: Background jobs for reports, emails, and heavy computations
-- **Auto-Scaling Infrastructure**: Horizontal scaling based on load patterns per tenant
-- **Resource Isolation**: Guaranteed resources per school tier to prevent noisy neighbor issues
-
-### Microservices Architecture
-
-**Core Services:**
+### Academic History Premium Features
 
 ```
-├── Authentication Service (Auth0/Keycloak integration)
-├── Academic Service (Students, grades, attendance)
-├── Enhanced Finance Service (Billing, payments, installments, accounting)
-├── Communication Service (Notifications, messaging)
-├── Reporting Service (Analytics, custom reports)
-├── File Storage Service (S3-compatible with tenant isolation)
-├── Integration Service (Third-party API management)
-└── Payment Processing Service (Installment management, reminders)
+Academic History Analytics:
+├── Basic: 3-year history included
+├── Professional: 5-year history + analytics
+├── Enterprise: Unlimited history + predictive analytics
+└── Custom: Advanced ML-powered insights
 ```
 
-**Supporting Services:**
+## X. Success Metrics and KPIs
 
-```
-├── Tenant Resolution Service
-├── Billing & Subscription Service
-├── Installment Management Service
-├── Payment Gateway Integration Service
-├── Audit Logging Service
-├── Backup & Archive Service
-└── Monitoring & Alerting Service
-```
+### White-Label Success Indicators
 
-### High Availability & Disaster Recovery
+- **Brand Recognition**: Increased school brand visibility and recognition
+- **User Engagement**: Higher app usage with branded interface
+- **Parent Satisfaction**: Improved satisfaction with school-branded communications
+- **Market Differentiation**: Competitive advantage through custom branding
 
-- **Multi-Region Deployment**: Primary in Jakarta, failover in Singapore
-- **Database Replication**: Real-time replication with automatic failover
-- **Backup Strategy**: Hourly snapshots, daily backups, monthly archives
-- **Recovery Objectives**: RTO < 1 hour, RPO < 15 minutes
-- **Regular DR Testing**: Quarterly disaster recovery drills
+### Academic History Impact Metrics
 
-### Monitoring & Observability Stack
-
-- **Metrics Collection**: Prometheus + Grafana for system and business metrics
-- **Log Aggregation**: ELK Stack for centralized logging with tenant separation
-- **Distributed Tracing**: Jaeger/OpenTelemetry for request flow analysis
-- **Real-Time Alerts**: PagerDuty integration with intelligent alert routing
-- **Tenant-Specific SLAs**: Custom monitoring thresholds per school tier
-
-### Cost-Optimized Infrastructure
-
-- **Kubernetes Orchestration**: Efficient container management and resource allocation
-- **Spot Instance Usage**: Up to 70% cost savings for non-critical workloads
-- **Automated Resource Scaling**: Scale down during off-hours per school timezone
-- **Tiered Storage Strategy**: Hot data on SSD, cold data on cheaper storage
-- **Reserved Instance Planning**: Predictable workloads on reserved instances
-
-### Development & Deployment Pipeline
-
-- **GitOps Workflow**: Infrastructure as code with Terraform/Pulumi
-- **CI/CD Pipeline**: Automated testing and deployment with zero downtime
-- **Blue-Green Deployments**: Safe rollouts with instant rollback capability
-- **Feature Flags**: Gradual feature rollout per tenant
-- **API Versioning**: Backward compatibility with deprecation notices
-
-### Compliance & Governance
-
-- **Multi-Tenant Audit Trail**: Complete activity logging with tenant isolation
-- **Compliance Reporting**: Automated reports for regulatory requirements
-- **Data Governance**: Clear data ownership and access policies
-- **Privacy by Design**: Built-in privacy controls and data minimization
-- **Regular Security Audits**: Third-party penetration testing and compliance verification
-
-## XVI. Advanced Per-Student Subscription & Installment System Features
-
-### Intelligent Subscription Plan Optimization
-
-**AI-Powered Tier Recommendations:**
-
-- **Tenant Growth Profiling**: Analyze enrollment patterns to predict optimal tier transitions
-- **Revenue Optimization Models**: Machine learning algorithms to maximize tenant lifetime value
-- **Churn Prevention Analytics**: Identify subscription risks and recommend retention strategies
-- **Pricing Elasticity Analysis**: Optimize per-student pricing based on market response
-- **Seasonal Enrollment Optimization**: Account for Indonesian academic calendar patterns
-
-**Smart Subscription Management:**
-
-- **Automatic Tier Upgrades**: Seamless transition when student count crosses tier boundaries
-- **Prorated Billing Adjustments**: Fair billing for mid-period enrollment changes
-- **Volume Discount Optimization**: Automatic application of appropriate volume discounts
-- **Custom Enterprise Pricing**: Negotiated rates for large enterprise tenants
-- **Multi-Year Subscription Discounts**: Incentives for long-term subscription commitments
-
-### Advanced Student Count Tracking
-
-**Real-Time Enrollment Monitoring:**
-
-- **Live Student Count Updates**: Instant updates across all tenant schools
-- **Enrollment Trend Analysis**: Predict future student growth patterns
-- **Seasonal Pattern Recognition**: Account for Indonesian academic year enrollment cycles
-- **Transfer Student Tracking**: Handle mid-year transfers between tenant schools
-- **Graduation Impact Analysis**: Plan for graduation-related enrollment changes
-
-**Accurate Billing Calculations:**
-
-- **Daily Student Count Snapshots**: Precise tracking for fair billing
-- **Weighted Average Billing**: Fair calculation for fluctuating enrollment
-- **Grace Period Management**: Buffer periods for enrollment reporting delays
-- **Dispute Resolution System**: Handle billing disputes with detailed audit trails
-- **Retroactive Adjustments**: Fair handling of reporting corrections
-
-### Enhanced Payment Plan Integration
-
-**Subscription-Installment Coordination:**
-
-- **Per-Student Fee Installments**: Break down subscription costs into manageable payments
-- **Coordinated Billing Cycles**: Align subscription and tuition payment schedules
-- **Family Account Optimization**: Coordinate payments across multiple children
-- **Volume Payment Discounts**: Additional discounts for upfront subscription payments
-- **Emergency Payment Relief**: Flexible payment arrangements during financial hardship
-
-**Automated Collection Workflows:**
-
-- **Intelligent Reminder Systems**: Multi-channel reminders optimized by payment history
-- **Escalation Procedures**: Graduated collection approach from gentle reminders to service restrictions
-- **Payment Plan Restructuring**: Automatic adjustment options during financial difficulties
-- **Service Level Management**: Fair restriction of non-essential services for overdue accounts
-- **Recovery Success Tracking**: Monitor effectiveness of different collection strategies
-
-### Platform Owner Revenue Analytics
-
-**Comprehensive Subscription Dashboards:**
-
-- **Real-Time Revenue Tracking**: Live monitoring of per-student revenue across all tenants
-- **Tier Distribution Analysis**: Visual breakdown of tenant distribution across pricing tiers
-- **Revenue Growth Projections**: Predictive modeling based on enrollment trends
-- **Churn Rate Monitoring**: Track subscription cancellations and identify risk factors
-- **Market Penetration Metrics**: Analyze market share and expansion opportunities
-
-**Advanced Pricing Strategy Tools:**
-
-- **Competitive Positioning Analysis**: Compare pricing against market competitors
-- **Price Sensitivity Testing**: A/B testing capabilities for optimal pricing discovery
-- **Regional Pricing Optimization**: Adjust pricing based on local economic conditions
-- **Feature Value Assessment**: Understand which features drive tier upgrades
-- **Seasonal Pricing Adjustments**: Flexible pricing for enrollment and payment seasons
-
-### Integration with School Operations
-
-**Academic Service Coordination:**
-
-- **Enrollment-Based Feature Access**: Automatic feature scaling based on student count
-- **Payment-Dependent Services**: Fair service restrictions for subscription issues
-- **Academic Calendar Integration**: Align billing cycles with Indonesian academic schedules
-- **Transfer Student Handling**: Seamless student movement between tenant schools
-- **Graduation Processing**: Smooth transition handling for graduating students
-
-**Operational Efficiency Tools:**
-
-- **Automated Tier Notifications**: Alert tenants when approaching tier boundaries
-- **Billing Forecast Reports**: Help tenants budget for enrollment growth
-- **Cost-Per-Student Analytics**: Detailed breakdowns for internal cost allocation
-- **ROI Calculation Tools**: Help tenants justify subscription costs with value metrics
-- **Benchmark Reporting**: Compare per-student costs against industry standards
-
-### Compliance and Financial Controls
-
-**Indonesian Regulatory Compliance:**
-
-- **Per-Student Cost Reporting**: Detailed reporting for educational authority requirements
-- **Subscription Revenue Recognition**: Proper accounting treatment for subscription revenues
-- **Multi-Tenant Tax Compliance**: Handle tax obligations across different tenant entities
-- **Educational Service Validation**: Ensure subscription costs align with educational outcomes
-- **Audit Trail Maintenance**: Comprehensive logging for regulatory compliance
-
-**Advanced Financial Security:**
-
-- **Subscription Fraud Detection**: AI-powered detection of unusual billing patterns
-- **Payment Security Integration**: Secure handling of subscription and installment payments
-- **Data Privacy Protection**: Secure handling of student count and enrollment data
-- **Cross-Border Compliance**: Handle international tenant requirements
-- **Financial Reporting Standards**: Meet Indonesian and international accounting standards
+- **Student Retention**: Improved retention through better academic tracking
+- **Academic Outcomes**: Enhanced academic performance through historical insights
+- **Parent Engagement**: Increased parent involvement through comprehensive history access
+- **Teacher Effectiveness**: Improved instruction through student history awareness
 
 ---
 
-This enhanced educational management system provides Indonesian multi-tenant networks with the most advanced per-student subscription model available, combining fair pricing, comprehensive installment capabilities, and world-class technology infrastructure. The revolutionary subscription system addresses the unique challenges of the Indonesian education market while providing unprecedented financial flexibility and operational efficiency.
+## Conclusion
 
-The integration of per-student pricing with advanced installment capabilities creates a powerful platform that grows with tenants while providing families with maximum payment flexibility. This system represents the future of educational technology pricing in emerging markets, providing sustainable revenue growth for platform owners while ensuring accessibility for educational institutions of all sizes.
+This enhanced educational management system now provides Indonesian multi-tenant networks with the most comprehensive white-label customization and student academic history tracking available in the market. The integration of advanced branding capabilities with complete academic journey documentation creates a powerful platform that not only serves immediate operational needs but also builds long-term educational value through comprehensive student development tracking.
+
+The white-label system enables schools to maintain their unique identity while benefiting from world-class educational technology, while the academic history features ensure no student's educational journey is ever fragmented or lost. This combination represents the future of educational technology in Indonesia, providing both institutional branding freedom and unprecedented academic continuity.
