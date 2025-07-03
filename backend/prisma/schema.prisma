@@ -507,33 +507,28 @@ model UserProfile {
 
 // Student Management
 model Student {
-  id                 String        @id @default(uuid()) @db.Uuid
-  userId             String        @unique @db.Uuid
-  schoolId           String        @db.Uuid
-  studentNumber      String        @unique
-  nisn               String?       @unique // National Student Number
-  nik                String? // National ID
-  birthCertificateNo String?
-  admissionDate      DateTime
-  admissionNumber    String?
-  previousSchool     Json?
-  bloodType          String?
-  religion           String?
-  specialNeeds       Json?
-  healthInfo         Json?
-  // ✅ REMOVED REDUNDANT FIELDS - Use Enrollment model instead
-  // currentGradeId     String?       @db.Uuid
-  // classId            String?       @db.Uuid
-  status             StudentStatus @default(ACTIVE)
-  graduationDate     DateTime?
-  metadata           Json          @default("{}")
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id                  String        @id @default(uuid()) @db.Uuid
+  userId              String        @unique @db.Uuid
+  schoolId            String        @db.Uuid
+  currentEnrollmentId String?       @db.Uuid // Link to active enrollment
+  studentNumber       String        @unique
+  nisn                String?       @unique // National Student Number
+  nik                 String? // National ID
+  birthCertificateNo  String?
+  admissionDate       DateTime
+  admissionNumber     String?
+  previousSchool      Json?
+  bloodType           String?
+  religion            String?
+  specialNeeds        Json?
+  healthInfo          Json?
+  status              StudentStatus @default(ACTIVE)
+  graduationDate      DateTime?
+  metadata            Json          @default("{}")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // ✅ REMOVED REDUNDANT RELATIONS - Use enrollments instead
-  // currentGrade Grade? @relation(fields: [currentGradeId], references: [id])
-  // class        Class? @relation(fields: [classId], references: [id])
 
   enrollments       Enrollment[]
   attendances       StudentAttendance[]
@@ -705,7 +700,8 @@ model Grade {
   subjects            Subject[]
   curricula           GradeCurriculum[]
   enrollments         Enrollment[]
-  previousEnrollments Enrollment[]      @relation("PreviousGrade") // ✅ For promotion tracking
+  previousEnrollments Enrollment[]       @relation("PreviousGrade") // ✅ For promotion tracking
+  GradeTranslation    GradeTranslation[]
 
   @@unique([schoolId, code])
   @@index([level])
@@ -793,11 +789,12 @@ model Subject {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
-  grade           Grade            @relation(fields: [gradeId], references: [id])
-  teachers        SubjectTeacher[]
-  schedules       Schedule[]
-  assessments     Assessment[]
-  academicRecords AcademicRecord[]
+  grade              Grade                @relation(fields: [gradeId], references: [id])
+  teachers           SubjectTeacher[]
+  schedules          Schedule[]
+  assessments        Assessment[]
+  academicRecords    AcademicRecord[]
+  SubjectTranslation SubjectTranslation[]
 
   @@unique([gradeId, code])
   @@index([category])
@@ -1376,21 +1373,22 @@ model Achievement {
 
 // Communication
 model Announcement {
-  id             String           @id @default(uuid()) @db.Uuid
-  schoolId       String           @db.Uuid
-  title          Json // Multilingual
-  content        Json // Multilingual
-  type           AnnouncementType
-  priority       Priority         @default(NORMAL)
-  targetAudience String[] // Roles or specific groups
-  attachments    Json?
-  publishAt      DateTime
-  expiresAt      DateTime?
-  createdBy      String           @db.Uuid
-  status         PublishStatus    @default(DRAFT)
-  metadata       Json             @default("{}")
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id                      String                    @id @default(uuid()) @db.Uuid
+  schoolId                String                    @db.Uuid
+  title                   Json // Multilingual
+  content                 Json // Multilingual
+  type                    AnnouncementType
+  priority                Priority                  @default(NORMAL)
+  targetAudience          String[] // Roles or specific groups
+  attachments             Json?
+  publishAt               DateTime
+  expiresAt               DateTime?
+  createdBy               String                    @db.Uuid
+  status                  PublishStatus             @default(DRAFT)
+  metadata                Json                      @default("{}")
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  AnnouncementTranslation AnnouncementTranslation[]
 
   @@index([type])
   @@index([priority])
@@ -1461,17 +1459,19 @@ model Notification {
 
 // Integration & External Systems
 model Integration {
-  id          String            @id @default(uuid()) @db.Uuid
-  schoolId    String            @db.Uuid
-  type        IntegrationType
-  name        String
-  config      Json // Encrypted
-  credentials Json // Encrypted
-  status      IntegrationStatus @default(INACTIVE)
-  lastSyncAt  DateTime?
-  metadata    Json              @default("{}")
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id              String            @id @default(uuid()) @db.Uuid
+  schoolId        String            @db.Uuid
+  type            IntegrationType
+  name            String
+  config          Json // Encrypted
+  credentials     Json // Encrypted
+  status          IntegrationStatus @default(INACTIVE)
+  lastSyncAt      DateTime?
+  dapodikSchoolId String? // DAPODIK school mapping
+  lastDapodikSync DateTime?
+  metadata        Json              @default("{}")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   syncLogs SyncLog[]
 
@@ -1541,6 +1541,106 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
+  @@schema("tenant")
+}
+
+model EmailTemplate {
+  id        String            @id @default(uuid()) @db.Uuid
+  schoolId  String            @db.Uuid
+  type      EmailTemplateType
+  name      String // Nama template untuk admin
+  subject   Json // Multilingual subject
+  body      Json // HTML template multilingual
+  variables String[] // Available merge variables
+  isActive  Boolean           @default(true)
+  isDefault Boolean           @default(false) // Use platform default
+
+  // White label support
+  useSchoolBranding Boolean @default(true)
+  customHeader      String? // Custom HTML header
+  customFooter      String? // Custom HTML footer
+  customCSS         String? // Custom styling
+
+  // Sending configuration
+  priority  Priority @default(NORMAL)
+  bccEmails String[] @default([])
+  replyTo   String?
+
+  createdBy String   @db.Uuid
+  updatedBy String?  @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, type])
+  @@index([isActive])
+  @@index([type])
+  @@map("email_templates")
+  @@schema("tenant")
+}
+
+// Email sending log untuk tracking
+model EmailLog {
+  id             String            @id @default(uuid()) @db.Uuid
+  templateId     String?           @db.Uuid
+  templateType   EmailTemplateType
+  recipientId    String            @db.Uuid // User ID
+  recipientEmail String
+  subject        String
+  status         EmailStatus       @default(PENDING)
+  sentAt         DateTime?
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  errorMessage   String?
+  metadata       Json              @default("{}")
+  createdAt      DateTime          @default(now())
+
+  @@index([recipientId])
+  @@index([status])
+  @@index([templateType])
+  @@index([createdAt])
+  @@map("email_logs")
+  @@schema("tenant")
+}
+
+// === ACADEMIC TRANSLATIONS ===
+model SubjectTranslation {
+  id          String   @id @default(uuid())
+  subjectId   String
+  language    Language
+  name        String
+  description String?
+
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([subjectId, language])
+  @@map("subject_translations")
+  @@schema("tenant")
+}
+
+model GradeTranslation {
+  id       String   @id @default(uuid())
+  gradeId  String
+  language Language
+  name     String
+
+  grade Grade @relation(fields: [gradeId], references: [id])
+
+  @@unique([gradeId, language])
+  @@map("grade_translations")
+  @@schema("tenant")
+}
+
+model AnnouncementTranslation {
+  id             String   @id @default(uuid())
+  announcementId String
+  language       Language
+  title          String
+  content        String
+
+  announcement Announcement @relation(fields: [announcementId], references: [id])
+
+  @@unique([announcementId, language])
+  @@map("announcement_translations")
   @@schema("tenant")
 }
 
@@ -2081,6 +2181,132 @@ enum SyncStatus {
   SUCCESS
   PARTIAL
   FAILED
+
+  @@schema("tenant")
+}
+
+enum Language {
+  EN
+  ID
+  ZH
+
+  @@schema("public")
+}
+
+// Add this enum to your schema.prisma
+
+enum EmailTemplateType {
+  // === AUTHENTICATION & ACCOUNT ===
+  WELCOME // Welcome email untuk user baru
+  EMAIL_VERIFICATION // Verifikasi email
+  PASSWORD_RESET // Reset password
+  PASSWORD_CHANGED // Notifikasi password berubah
+  TWO_FACTOR_CODE // Kode 2FA
+  ACCOUNT_LOCKED // Akun terkunci
+  ACCOUNT_REACTIVATED // Akun diaktifkan kembali
+
+  // === ENROLLMENT & ADMISSION ===
+  ENROLLMENT_CONFIRMATION // Konfirmasi pendaftaran siswa
+  ENROLLMENT_ACCEPTED // Diterima di sekolah
+  ENROLLMENT_REJECTED // Ditolak pendaftaran
+  ENROLLMENT_WAITLIST // Masuk waiting list
+  CLASS_ASSIGNMENT // Penempatan kelas
+  GRADE_PROMOTION // Naik kelas
+  GRADE_RETENTION // Tinggal kelas
+  TRANSFER_CONFIRMATION // Konfirmasi pindah sekolah
+
+  // === ACADEMIC NOTIFICATIONS ===
+  REPORT_CARD_READY // Rapor siap diunduh
+  ASSESSMENT_PUBLISHED // Ujian/tugas dipublish
+  ASSESSMENT_REMINDER // Pengingat ujian/tugas
+  ASSESSMENT_RESULT // Hasil ujian/nilai
+  HOMEWORK_ASSIGNED // PR baru
+  HOMEWORK_REMINDER // Pengingat PR
+  ACADEMIC_WARNING // Peringatan akademik
+  ACHIEVEMENT_NOTIFICATION // Notifikasi prestasi
+
+  // === ATTENDANCE ===
+  ATTENDANCE_ABSENT // Siswa tidak hadir
+  ATTENDANCE_LATE // Siswa terlambat
+  ATTENDANCE_SUMMARY_WEEKLY // Ringkasan mingguan
+  ATTENDANCE_SUMMARY_MONTHLY // Ringkasan bulanan
+  ATTENDANCE_WARNING // Peringatan absensi
+
+  // === PAYMENT & BILLING ===
+  INVOICE_CREATED // Invoice baru
+  PAYMENT_REMINDER // Pengingat pembayaran
+  PAYMENT_OVERDUE // Pembayaran terlambat
+  PAYMENT_RECEIVED // Konfirmasi pembayaran
+  PAYMENT_RECEIPT // Kwitansi pembayaran
+  INSTALLMENT_REMINDER // Pengingat cicilan
+  INSTALLMENT_SCHEDULE // Jadwal cicilan
+  PAYMENT_FAILED // Pembayaran gagal
+  REFUND_PROCESSED // Refund diproses
+
+  // === COMMUNICATION ===
+  ANNOUNCEMENT_GENERAL // Pengumuman umum
+  ANNOUNCEMENT_URGENT // Pengumuman penting/darurat
+  EVENT_INVITATION // Undangan acara
+  EVENT_REMINDER // Pengingat acara
+  MEETING_INVITATION // Undangan rapat
+  MEETING_REMINDER // Pengingat rapat
+  MEETING_CANCELLATION // Pembatalan rapat
+  MESSAGE_NOTIFICATION // Notifikasi pesan baru
+
+  // === DISCIPLINE & BEHAVIOR ===
+  DISCIPLINE_WARNING // Peringatan disiplin
+  DISCIPLINE_ACTION // Tindakan disiplin
+  BEHAVIOR_REPORT // Laporan perilaku
+  COUNSELING_APPOINTMENT // Jadwal konseling
+  PARENT_CONFERENCE_REQUEST // Permintaan pertemuan orangtua
+
+  // === LEAVE & PERMISSION ===
+  LEAVE_REQUEST_SUBMITTED // Pengajuan cuti (guru/staff)
+  LEAVE_REQUEST_APPROVED // Cuti disetujui
+  LEAVE_REQUEST_REJECTED // Cuti ditolak
+  STUDENT_LEAVE_NOTIFICATION // Notifikasi izin siswa
+
+  // === SCHEDULE & TIMETABLE ===
+  SCHEDULE_CHANGE // Perubahan jadwal
+  SCHEDULE_PUBLISHED // Jadwal baru dipublish
+  CLASS_CANCELLATION // Pembatalan kelas
+  SUBSTITUTE_TEACHER // Info guru pengganti
+
+  // === WHITE LABEL SPECIFIC ===
+  DOMAIN_VERIFICATION // Verifikasi domain custom
+  DOMAIN_VERIFIED // Domain terverifikasi
+  SSL_EXPIRY_WARNING // Peringatan SSL akan expired
+  WHITE_LABEL_ACTIVATED // White label diaktifkan
+  WHITE_LABEL_SUSPENDED // White label disuspend
+
+  // === SYSTEM & MAINTENANCE ===
+  SYSTEM_MAINTENANCE // Notifikasi maintenance
+  SYSTEM_UPDATE // Update sistem
+  DATA_EXPORT_READY // Export data selesai
+  BACKUP_COMPLETED // Backup selesai
+  API_LIMIT_WARNING // Peringatan API limit
+  SUBSCRIPTION_EXPIRING // Subscription akan habis
+  SUBSCRIPTION_RENEWED // Subscription diperpanjang
+
+  // === CUSTOM TEMPLATES ===
+  CUSTOM_TEMPLATE_1 // Template custom 1
+  CUSTOM_TEMPLATE_2 // Template custom 2
+  CUSTOM_TEMPLATE_3 // Template custom 3
+  CUSTOM_TEMPLATE_4 // Template custom 4
+  CUSTOM_TEMPLATE_5 // Template custom 5
+
+  @@schema("tenant")
+}
+
+enum EmailStatus {
+  PENDING // Menunggu dikirim
+  QUEUED // Dalam antrian
+  SENT // Terkirim
+  DELIVERED // Diterima
+  OPENED // Dibuka
+  CLICKED // Link diklik
+  BOUNCED // Gagal terkirim
+  FAILED // Error
 
   @@schema("tenant")
 }
