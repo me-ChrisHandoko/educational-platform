@@ -12,7 +12,17 @@ export { RolesGuard } from './guards/roles.guard';
 export { CurrentUser } from './decorators/current-user.decorator';
 export { Public } from './decorators/public.decorator';
 export { Roles } from './decorators/roles.decorator';
+export type { UserRole } from './decorators/roles.decorator';
+
+// Constants
+export { UserRoles } from './constants/user-roles';
 
 // DTOs
-export * from './dto/auth.dto';
-export * from './dto/auth-response.dto';
+export { LoginDto, RegisterDto, RefreshTokenDto } from './dto/auth.dto';
+export type {
+  AuthTokens,
+  RegisterResponse,
+  LoginResponse,
+  RefreshTokenResponse,
+  LogoutResponse,
+} from './dto/auth-response.dto';

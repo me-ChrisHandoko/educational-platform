@@ -1,5 +1,17 @@
-// src/users/types/user.types.ts - UPDATED WITH MISSING PROPERTY
-import { User, Profile, Language } from '@prisma/client';
+// src/users/types/user.types.ts - FIXED WITHOUT PRISMA DEPENDENCIES
+
+// Define Language type locally
+export type Language = 'EN' | 'ID' | 'ZH';
+
+// Define UserRole type locally
+export type UserRole =
+  | 'ADMIN'
+  | 'PRINCIPAL'
+  | 'VICE_PRINCIPAL'
+  | 'TEACHER'
+  | 'STAFF'
+  | 'STUDENT'
+  | 'PARENT';
 
 /**
  * Safe User type - excludes sensitive fields
@@ -8,7 +20,7 @@ import { User, Profile, Language } from '@prisma/client';
 export type SafeUser = {
   id: string;
   email: string;
-  role: User['role'];
+  role: UserRole;
   isActive: boolean;
   isVerified: boolean;
   lastLoginAt: Date | null;
@@ -63,12 +75,18 @@ export type PrismaProfileTranslation = {
   profileId: string;
 };
 
-export type PrismaProfileWithTranslations = Profile & {
+export type PrismaProfileWithTranslations = {
+  id: string;
+  userId: string;
+  avatar: string | null;
+  phone: string | null;
+  address: string | null;
+  birthday: Date | null;
   translations: PrismaProfileTranslation[];
 };
 
 /**
- * User statistics response - FIXED WITH MISSING PROPERTY
+ * User statistics response
  */
 export type UserStats = {
   total: number;
@@ -76,7 +94,7 @@ export type UserStats = {
   verified: number;
   inactive: number;
   unverified: number;
-  recentlyActive: number; // ✅ ADDED: Missing property that was causing error
+  recentlyActive: number;
 };
 
 /**

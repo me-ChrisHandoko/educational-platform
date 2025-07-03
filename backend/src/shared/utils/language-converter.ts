@@ -1,30 +1,33 @@
-// src/shared/utils/language-converter.ts - UPDATED WITH CHINESE
-import { Language } from '@prisma/client';
+// src/shared/utils/language-converter.ts - FIXED WITHOUT PRISMA IMPORTS
 import { SupportedLanguage } from '../../i18n/constants/languages';
+
+// Define Language type locally to match Prisma schema
+type Language = 'EN' | 'ID' | 'ZH';
 
 export class LanguageConverter {
   private static readonly SUPPORTED_TO_PRISMA: Record<
     SupportedLanguage,
     Language
   > = {
-    EN: Language.EN,
-    ID: Language.ID,
-    ZH: Language.ZH, // ✅ ADDED Chinese mapping
+    EN: 'EN',
+    ID: 'ID',
+    ZH: 'ZH',
   };
 
-  private static readonly PRISMA_TO_SUPPORTED: Partial<
-    Record<Language, SupportedLanguage>
+  private static readonly PRISMA_TO_SUPPORTED: Record<
+    Language,
+    SupportedLanguage
   > = {
-    [Language.EN]: 'EN',
-    [Language.ID]: 'ID',
-    [Language.ZH]: 'ZH', // ✅ ADDED Chinese mapping
+    EN: 'EN',
+    ID: 'ID',
+    ZH: 'ZH',
   };
 
   /**
    * Convert SupportedLanguage to Prisma Language enum
    */
   static toPrismaLanguage(supportedLang: SupportedLanguage): Language {
-    return this.SUPPORTED_TO_PRISMA[supportedLang] || Language.EN;
+    return this.SUPPORTED_TO_PRISMA[supportedLang] || 'EN';
   }
 
   /**
@@ -50,7 +53,7 @@ export class LanguageConverter {
   }
 
   /**
-   * ✅ NEW: Get language display info
+   * Get language display info
    */
   static getLanguageInfo(lang: SupportedLanguage): {
     code: string;
@@ -83,7 +86,7 @@ export class LanguageConverter {
   }
 
   /**
-   * ✅ NEW: Detect language from various sources
+   * Detect language from various sources
    */
   static detectLanguage(sources: {
     header?: string;
@@ -110,7 +113,7 @@ export class LanguageConverter {
   }
 
   /**
-   * ✅ NEW: Parse language code with Chinese variants
+   * Parse language code with Chinese variants
    */
   private static parseLanguageCode(code: string): SupportedLanguage | null {
     if (!code) return null;
@@ -139,7 +142,7 @@ export class LanguageConverter {
   }
 
   /**
-   * ✅ NEW: Parse Accept-Language header
+   * Parse Accept-Language header
    */
   private static parseAcceptLanguage(
     acceptLang: string,

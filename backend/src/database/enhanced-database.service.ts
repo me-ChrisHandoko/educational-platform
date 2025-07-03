@@ -1,4 +1,4 @@
-// src/database/enhanced-database.service.ts - FULLY MERGED VERSION
+// src/database/enhanced-database.service.ts - FIXED VERSION
 import {
   Injectable,
   Logger,
@@ -100,6 +100,16 @@ export class EnhancedDatabaseService
   constructor(private configService: ConfigService) {
     const config = EnhancedDatabaseService.buildDatabaseConfig(configService);
 
+    // Configure Prisma logging based on environment
+    const logConfig: Array<'query' | 'info' | 'warn' | 'error'> = [];
+
+    if (process.env.NODE_ENV === 'development') {
+      logConfig.push('query', 'error', 'info', 'warn');
+    } else {
+      // In production, only log errors
+      logConfig.push('error');
+    }
+
     super({
       datasources: {
         db: {
@@ -109,12 +119,7 @@ export class EnhancedDatabaseService
           ),
         },
       },
-      log: [
-        { emit: 'event', level: 'query' },
-        { emit: 'event', level: 'error' },
-        { emit: 'event', level: 'info' },
-        { emit: 'event', level: 'warn' },
-      ],
+      log: logConfig,
       errorFormat: 'pretty',
     });
 
@@ -224,7 +229,7 @@ export class EnhancedDatabaseService
   }
 
   // ==========================================
-  // HEALTH MONITORING (MERGED FROM DatabaseHealthService)
+  // HEALTH MONITORING
   // ==========================================
 
   async isHealthy(): Promise<boolean> {
@@ -479,30 +484,29 @@ export class EnhancedDatabaseService
   }
 
   // ==========================================
-  // PERFORMANCE MONITORING (MERGED FROM DatabaseMonitoringService)
+  // PERFORMANCE MONITORING
   // ==========================================
 
   private setupEventListeners(): void {
+    // Note: With simplified log configuration, we need to track queries differently
     if (process.env.NODE_ENV === 'development') {
-      this.$on('query' as never, (e: Prisma.QueryEvent) => {
+      // Use Prisma middleware for query tracking
+      this.$use(async (params, next) => {
+        const before = Date.now();
+        const result = await next(params);
+        const after = Date.now();
+
         this.handleQueryEvent({
           type: 'query',
-          timestamp: Date.now(),
-          duration: e.duration,
-          query: e.query,
-          params: e.params,
+          timestamp: before,
+          duration: after - before,
+          query: `${params.model}.${params.action}`,
+          params: JSON.stringify(params.args),
         });
+
+        return result;
       });
     }
-
-    this.$on('error' as never, (e: Prisma.LogEvent) => {
-      this.handleErrorEvent({
-        type: 'error',
-        timestamp: Date.now(),
-        message: e.message,
-        target: e.target,
-      });
-    });
   }
 
   private handleQueryEvent(event: DatabaseEvent): void {
@@ -616,7 +620,7 @@ export class EnhancedDatabaseService
   }
 
   // ==========================================
-  // ENHANCED OPERATIONS (ORIGINAL FEATURES)
+  // ENHANCED OPERATIONS
   // ==========================================
 
   async monitoredQuery<T>(

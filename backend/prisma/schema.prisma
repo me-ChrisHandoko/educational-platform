@@ -1604,8 +1604,8 @@ model EmailLog {
 
 // === ACADEMIC TRANSLATIONS ===
 model SubjectTranslation {
-  id          String   @id @default(uuid())
-  subjectId   String
+  id          String   @id @default(uuid()) @db.Uuid
+  subjectId   String   @db.Uuid
   language    Language
   name        String
   description String?
@@ -1618,8 +1618,8 @@ model SubjectTranslation {
 }
 
 model GradeTranslation {
-  id       String   @id @default(uuid())
-  gradeId  String
+  id       String   @id @default(uuid()) @db.Uuid
+  gradeId  String   @db.Uuid
   language Language
   name     String
 
@@ -1631,8 +1631,8 @@ model GradeTranslation {
 }
 
 model AnnouncementTranslation {
-  id             String   @id @default(uuid())
-  announcementId String
+  id             String   @id @default(uuid()) @db.Uuid
+  announcementId String   @db.Uuid
   language       Language
   title          String
   content        String
