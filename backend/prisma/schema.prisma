@@ -422,15 +422,15 @@ model DomainVerification {
 
 // Platform User Management
 model TenantUser {
-  id           String     @id @default(uuid()) @db.Uuid
-  tenantId     String     @db.Uuid
-  email        String     @unique
-  passwordHash String
-  role         TenantRole
-  status       UserStatus @default(ACTIVE)
-  lastLoginAt  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id          String     @id @default(uuid()) @db.Uuid
+  tenantId    String     @db.Uuid
+  email       String     @unique
+  password    String
+  role        TenantRole
+  status      UserStatus @default(ACTIVE)
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
@@ -449,7 +449,7 @@ model User {
   schoolId          String     @db.Uuid
   email             String     @unique
   username          String?    @unique
-  passwordHash      String
+  password          String
   role              UserRole
   status            UserStatus @default(ACTIVE)
   emailVerified     Boolean    @default(false)
