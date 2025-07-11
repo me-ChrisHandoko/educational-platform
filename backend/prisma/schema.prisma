@@ -1,5 +1,5 @@
-// Educational Management Platform - Prisma Schema (ENHANCED WITH INSTALLMENTS & WHITE LABEL)
-// High-performance multi-tenant architecture with installment payment support and white label
+// Educational Management Platform - Prisma Schema (ENHANCED WITH PARENT PORTAL & MULTI-LANGUAGE)
+// High-performance multi-tenant architecture with parent engagement features
 
 generator client {
   provider        = "prisma-client-js"
@@ -372,9 +372,6 @@ model WhiteLabelSubscription {
   planId   String           @db.Uuid
   status   WhiteLabelStatus @default(ACTIVE)
 
-  // ✅ REMOVED REDUNDANT FIELD - Use School.customDomain as single source of truth
-  // currentDomain    String?
-
   domainVerified Boolean   @default(false)
   sslEnabled     Boolean   @default(false)
   sslExpiry      DateTime?
@@ -445,26 +442,32 @@ model TenantUser {
 
 // User Management
 model User {
-  id                String     @id @default(uuid()) @db.Uuid
-  schoolId          String     @db.Uuid
-  email             String     @unique
-  username          String?    @unique
-  password          String
-  role              UserRole
-  status            UserStatus @default(ACTIVE)
-  emailVerified     Boolean    @default(false)
-  phoneNumber       String?
-  phoneVerified     Boolean    @default(false)
-  preferredLanguage String     @default("id")
-  twoFactorEnabled  Boolean    @default(false)
-  twoFactorSecret   String?
-  lastLoginAt       DateTime?
-  lastLoginIp       String?
-  failedLoginCount  Int        @default(0)
-  lockedUntil       DateTime?
-  metadata          Json       @default("{}")
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  id            String     @id @default(uuid()) @db.Uuid
+  schoolId      String     @db.Uuid
+  email         String     @unique
+  username      String?    @unique
+  password      String
+  role          UserRole
+  status        UserStatus @default(ACTIVE)
+  emailVerified Boolean    @default(false)
+  phoneNumber   String?
+  phoneVerified Boolean    @default(false)
+
+  // ✅ ENHANCED: Multi-language preferences
+  preferredLanguage    String  @default("id") // Default language preference
+  uiLanguage           String? // Language untuk interface (jika berbeda dari preferred)
+  notificationLanguage String? // Language untuk notifikasi (email, SMS, push)
+  documentLanguage     String? // Language untuk dokumen (rapor, invoice, dll)
+
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
+  lastLoginAt      DateTime?
+  lastLoginIp      String?
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  metadata         Json      @default("{}")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   profile       UserProfile?
   sessions      Session[]
@@ -530,13 +533,16 @@ model Student {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  enrollments       Enrollment[]
-  attendances       StudentAttendance[]
-  academicRecords   AcademicRecord[]
-  assessments       StudentAssessment[]
-  disciplineRecords DisciplineRecord[]
-  achievements      Achievement[]
-  parentRelations   StudentParent[]
+  enrollments          Enrollment[]
+  attendances          StudentAttendance[]
+  academicRecords      AcademicRecord[]
+  assessments          StudentAssessment[]
+  disciplineRecords    DisciplineRecord[]
+  achievements         Achievement[]
+  parentRelations      StudentParent[]
+  dailyActivities      StudentDailyActivity[] // ✅ NEW: For KB/TK daily tracking
+  ParentTeacherMessage ParentTeacherMessage[]
+  ParentConsent        ParentConsent[]
 
   @@index([schoolId])
   @@index([studentNumber])
@@ -563,6 +569,11 @@ model Parent {
   user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   studentRelations StudentParent[]
 
+  // ✅ NEW: Parent engagement tracking
+  portalMetrics     ParentPortalMetrics?
+  notificationPrefs ParentNotificationPreference?
+  consents          ParentConsent[]
+
   @@index([nik])
   @@map("parents")
   @@schema("tenant")
@@ -583,6 +594,200 @@ model StudentParent {
   @@unique([studentId, parentId])
   @@index([isPrimary])
   @@map("student_parents")
+  @@schema("tenant")
+}
+
+// ✅ NEW: Parent Portal Enhancements
+model ParentPortalMetrics {
+  id                String    @id @default(uuid()) @db.Uuid
+  parentId          String    @unique @db.Uuid
+  lastLoginAt       DateTime?
+  reportCardsViewed Int       @default(0)
+  paymentsViewed    Int       @default(0)
+  messagesRead      Int       @default(0)
+  attendanceChecks  Int       @default(0)
+  activitiesViewed  Int       @default(0) // For KB/TK daily activities
+  lastActivityAt    DateTime?
+  loginCount        Int       @default(0)
+  preferredDevice   String? // mobile, tablet, desktop
+  appVersion        String? // For mobile app tracking
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  parent Parent @relation(fields: [parentId], references: [id])
+
+  @@map("parent_portal_metrics")
+  @@schema("tenant")
+}
+
+model ParentNotificationPreference {
+  id       String @id @default(uuid()) @db.Uuid
+  parentId String @unique @db.Uuid
+
+  // Academic notifications
+  gradeUpdates      Boolean @default(true)
+  attendanceAlerts  Boolean @default(true)
+  homeworkReminders Boolean @default(false)
+  assessmentResults Boolean @default(true)
+  reportCardReady   Boolean @default(true)
+
+  // Financial notifications
+  paymentReminders Boolean @default(true)
+  invoiceAlerts    Boolean @default(true)
+  overdueNotices   Boolean @default(true)
+
+  // Activity notifications (KB/TK)
+  dailyActivities Boolean @default(true)
+  mealUpdates     Boolean @default(true)
+  napTime         Boolean @default(false)
+  photoUpdates    Boolean @default(true)
+
+  // Communication preferences
+  emailEnabled    Boolean @default(true)
+  smsEnabled      Boolean @default(false)
+  whatsappEnabled Boolean @default(true)
+  pushEnabled     Boolean @default(true)
+
+  // Timing preferences
+  quietHoursStart      DateTime? @db.Time // Don't send after this time
+  quietHoursEnd        DateTime? @db.Time // Resume sending after this time
+  weekendNotifications Boolean   @default(false) // Send on weekends
+
+  // Batching preferences
+  immediateAlerts String[] // Types that should be sent immediately
+  digestFrequency DigestFrequency @default(DAILY)
+  digestTime      DateTime?       @db.Time // Preferred time for digest
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent Parent @relation(fields: [parentId], references: [id])
+
+  @@map("parent_notification_preferences")
+  @@schema("tenant")
+}
+
+model StudentDailyActivity {
+  id        String   @id @default(uuid()) @db.Uuid
+  studentId String   @db.Uuid
+  date      DateTime @db.Date
+
+  // Check-in/out times
+  arrivalTime   DateTime?
+  departureTime DateTime?
+  pickedUpBy    String? // Who picked up the child
+
+  // Mood & behavior
+  moodOnArrival   String? // Happy, Sad, Neutral, Excited, Tired
+  moodAtDeparture String?
+  overallBehavior String? // Excellent, Good, Fair, Needs Attention
+
+  // Meals & Health
+  breakfastStatus String? // All, Most, Some, None
+  lunchStatus     String?
+  snackStatus     String?
+  waterIntake     String? // Excellent, Good, Fair, Poor
+
+  // Rest & hygiene
+  napTime        Json? // {start: "13:00", end: "14:30", quality: "good"}
+  bathroomVisits Int   @default(0)
+  diaperChanges  Int   @default(0) // For very young children
+
+  // Activities & Learning
+  activities     Json[] // Array of {time, activity, participation, notes}
+  learningTopics String[] // What was taught today
+  specialMoments String? // Notable events or achievements
+
+  // Social interactions
+  playedWith  String[] // Names of friends played with
+  socialNotes String? // Social behavior observations
+
+  // Teacher observations
+  teacherNotes   String?
+  concernsRaised String?
+
+  // Media attachments
+  photos Json[] // {url, caption, time, activity}
+  videos Json[] // Short video clips
+
+  // Health notes
+  temperature     Decimal? @db.Decimal(3, 1) // If checked
+  medicationGiven Json? // {medicine, time, dose}
+  injuryReport    Json? // {description, time, treatment}
+
+  createdBy String   @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, date])
+  @@index([date])
+  @@map("student_daily_activities")
+  @@schema("tenant")
+}
+
+model ParentTeacherMessage {
+  id                 String          @id @default(uuid()) @db.Uuid
+  conversationId     String          @db.Uuid
+  requestedBy        String          @db.Uuid // Parent or Teacher ID
+  requestedByRole    UserRole // PARENT or TEACHER
+  studentId          String          @db.Uuid
+  subject            String
+  urgency            Priority        @default(NORMAL)
+  category           MessageCategory
+  status             MessageStatus   @default(OPEN)
+  resolvedAt         DateTime?
+  resolvedBy         String?         @db.Uuid
+  satisfactionRating Int? // 1-5 rating from parent
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  student      Student      @relation(fields: [studentId], references: [id])
+
+  @@index([status])
+  @@index([studentId])
+  @@index([urgency])
+  @@map("parent_teacher_messages")
+  @@schema("tenant")
+}
+
+model ParentConsent {
+  id          String      @id @default(uuid()) @db.Uuid
+  parentId    String      @db.Uuid
+  studentId   String      @db.Uuid
+  consentType ConsentType
+  granted     Boolean
+  grantedAt   DateTime?
+  grantedBy   String? // IP address or device ID
+  expiresAt   DateTime?
+  documentUrl String? // Signed consent form
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  parent  Parent  @relation(fields: [parentId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@unique([parentId, studentId, consentType])
+  @@index([consentType])
+  @@index([expiresAt])
+  @@map("parent_consents")
+  @@schema("tenant")
+}
+
+// ✅ NEW: Notification Templates by Education Level
+model NotificationPreferenceTemplate {
+  id             String                @id @default(uuid()) @db.Uuid
+  schoolLevel    SchoolLevel
+  category       NotificationCategory
+  defaultEnabled Boolean
+  defaultChannel NotificationChannel[]
+  defaultTiming  NotificationTiming // immediate, daily, weekly, monthly
+  maxDailyCount  Int                   @default(10) // Max notifications per day
+  priority       Int                   @default(1) // Higher number = higher priority
+
+  @@unique([schoolLevel, category])
+  @@map("notification_preference_templates")
   @@schema("tenant")
 }
 
@@ -1429,7 +1634,8 @@ model Conversation {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
-  messages Message[]
+  messages              Message[]
+  parentTeacherMessages ParentTeacherMessage[]
 
   @@index([type])
   @@index([lastMessageAt])
@@ -1646,6 +1852,78 @@ model AnnouncementTranslation {
 
 // ==================== ENUMS ====================
 
+// ✅ NEW: Parent Portal Related Enums
+enum DigestFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  NEVER
+
+  @@schema("tenant")
+}
+
+enum MessageCategory {
+  ACADEMIC
+  BEHAVIOR
+  HEALTH
+  ADMINISTRATIVE
+  OTHER
+
+  @@schema("tenant")
+}
+
+enum MessageStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+
+  @@schema("tenant")
+}
+
+enum ConsentType {
+  PHOTO_SHARING
+  FIELD_TRIP
+  MEDICAL_TREATMENT
+  DATA_SHARING
+  SPECIAL_PROGRAM
+
+  @@schema("tenant")
+}
+
+enum NotificationCategory {
+  ATTENDANCE
+  ACADEMIC_PERFORMANCE
+  ACADEMIC_SUBMISSION
+  BEHAVIOR_DISCIPLINE
+  HEALTH_SAFETY
+  PAYMENT_FINANCE
+  ACTIVITY_UPDATE
+  COMMUNICATION
+  EVENT_ANNOUNCEMENT
+
+  @@schema("tenant")
+}
+
+enum NotificationChannel {
+  PUSH_NOTIFICATION
+  EMAIL
+  SMS
+  WHATSAPP
+  IN_APP
+
+  @@schema("tenant")
+}
+
+enum NotificationTiming {
+  IMMEDIATE
+  DAILY
+  WEEKLY
+  MONTHLY
+
+  @@schema("tenant")
+}
+
 // New Payment-Related Enums
 enum PaymentType {
   FULL // Bayar tunai/sekaligus
@@ -1752,6 +2030,7 @@ enum SchoolType {
 }
 
 enum SchoolLevel {
+  KB // ✅ NEW: Kelompok Bermain / Playgroup
   TK
   SD
   SMP
@@ -1926,7 +2205,7 @@ enum EnrollmentStatus {
   @@schema("tenant")
 }
 
-// ✅ NEW: Enhanced promotion tracking
+// ✅ Enhanced promotion tracking
 enum PromotionType {
   REGULAR // Normal naik kelas
   ACCELERATED // Loncat kelas / akselerasi
@@ -2193,8 +2472,7 @@ enum Language {
   @@schema("public")
 }
 
-// Add this enum to your schema.prisma
-
+// Email Template Types
 enum EmailTemplateType {
   // === AUTHENTICATION & ACCOUNT ===
   WELCOME // Welcome email untuk user baru
@@ -2278,6 +2556,15 @@ enum EmailTemplateType {
   SSL_EXPIRY_WARNING // Peringatan SSL akan expired
   WHITE_LABEL_ACTIVATED // White label diaktifkan
   WHITE_LABEL_SUSPENDED // White label disuspend
+
+  // === PARENT PORTAL SPECIFIC ===
+  DAILY_ACTIVITY_SUMMARY // Rangkuman aktivitas harian (KB/TK)
+  WEEKLY_PROGRESS_REPORT // Laporan perkembangan mingguan
+  PHOTO_ALBUM_SHARED // Album foto dibagikan
+  MEAL_UPDATE // Update makan anak
+  NAP_TIME_UPDATE // Update tidur siang
+  HEALTH_CHECK_RESULT // Hasil pemeriksaan kesehatan
+  MILESTONE_ACHIEVED // Pencapaian milestone perkembangan
 
   // === SYSTEM & MAINTENANCE ===
   SYSTEM_MAINTENANCE // Notifikasi maintenance

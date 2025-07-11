@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This comprehensive educational management application design addresses the complete lifecycle of multi-school tenant operations in Indonesia, covering kindergarten through high school (TK, SD, SMP, SMA). The system integrates national compliance requirements, modern technology architecture, and tenant-specific management capabilities while supporting Indonesia's unique educational landscape including NISN integration, DAPODIK compliance, local payment systems, comprehensive installment payment solutions, **advanced white-label customization**, and **complete student academic history tracking**.
+This comprehensive educational management application design addresses the complete lifecycle of multi-school tenant operations in Indonesia, covering kindergarten through high school (TK, SD, SMP, SMA). The system integrates national compliance requirements, modern technology architecture, and tenant-specific management capabilities while supporting Indonesia's unique educational landscape including NISN integration, DAPODIK compliance, local payment systems, comprehensive installment payment solutions, **advanced white-label customization**, **complete student academic history tracking**, and **enhanced parent portal with multi-language support**.
 
 ## System Hierarchy and Access Control
 
@@ -14,7 +14,7 @@ This comprehensive educational management application design addresses the compl
 - **Department Head/Coordinator**: Manages specific academic departments with grade progression oversight
 - **Teacher/Educator**: Classroom-level access with student history viewing for informed instruction
 - **Student**: Access to personal academic information, learning resources, and complete academic timeline
-- **Parent/Guardian**: Monitor child's progress, academic history, and communicate with school
+- **Parent/Guardian**: Monitor child's progress, academic history, communicate with school, and receive notifications in preferred language
 - **Support Staff**: Limited access based on role (finance, admin, etc.)
 
 ### Role-Based Permissions Matrix
@@ -46,6 +46,15 @@ School Administrator:
 ├── Parent Communication
 ├── ✅ White-Label Branding Control
 └── ✅ Student Academic Progression Management
+
+Parent:
+├── Multiple Children Management
+├── Academic Progress Viewing
+├── Payment & Financial Access
+├── Communication with Teachers
+├── Notification Preferences
+├── ✅ Language Customization
+└── ✅ Daily Activity Monitoring (KB/TK)
 ```
 
 ## I. Core System Architecture
@@ -58,6 +67,7 @@ School Administrator:
 - **Data Isolation**: Secure tenant separation while enabling consolidated reporting and cross-school student tracking
 - **Scaling Infrastructure**: Cloud-native architecture supporting 100,000+ concurrent users
 - **Cross-School Analytics**: Comparative performance metrics, benchmarking, and student mobility tracking across tenant locations
+- **✅ Multi-Language Architecture**: Support for multiple languages per tenant with parent preference management
 
 ### Indonesian Compliance Framework
 
@@ -274,7 +284,266 @@ const studentAcademicHistory = {
 - **Academic Intervention Planning**: Targeted support based on historical performance patterns
 - **College Readiness Tracking**: Long-term academic preparation monitoring
 
-## IV. Student Data Management System
+## IV. ✅ Enhanced Parent Portal System
+
+### Comprehensive Parent Features
+
+The parent portal provides a complete view of their children's educational journey with multi-language support and education level-appropriate notifications.
+
+### Parent Dashboard Components
+
+**Multi-Child Management:**
+
+- Switch between multiple children seamlessly
+- Aggregate view of all children's activities
+- Comparative academic performance
+- Consolidated payment information
+
+**Academic Information Access:**
+
+- Real-time grade updates
+- Assessment results and feedback
+- Downloadable report cards
+- Academic history timeline
+- Achievement gallery
+- Teacher feedback and comments
+
+**Financial Management:**
+
+- Outstanding fees overview
+- Payment history
+- Installment schedules
+- Online payment gateway
+- Digital receipt downloads
+- Payment reminder preferences
+
+**Communication Hub:**
+
+- Direct messaging with teachers
+- Appointment scheduling
+- School announcements
+- Event calendar
+- Emergency notifications
+- Parent-teacher conference booking
+
+### Multi-Language Support for Parents
+
+**Language Preference Management:**
+
+```javascript
+const parentLanguageSettings = {
+  preferredLanguage: "id", // Default language
+  uiLanguage: "en", // Interface language
+  notificationLanguage: "id", // Notification language
+  documentLanguage: "zh", // Document language (reports, invoices)
+
+  // Language contexts
+  contexts: {
+    mobileApp: "preferredLanguage",
+    emailNotifications: "notificationLanguage",
+    reportCards: "documentLanguage",
+    teacherChat: "preferredLanguage",
+  },
+};
+```
+
+**Available Languages:**
+
+- Bahasa Indonesia (id) - Default
+- English (en)
+- Mandarin Chinese (zh)
+- Additional languages as configured by tenant
+
+### Education Level-Specific Features
+
+#### Kelompok Bermain (KB) / Playgroup (Age 2-4)
+
+**Daily Activity Tracking:**
+
+- Arrival/departure photos with timestamps
+- Meal tracking with photos
+- Nap schedule and duration
+- Bathroom visits tracking
+- Mood monitoring throughout the day
+- Activity participation photos
+- Teacher's daily notes
+
+**Real-time Notifications:**
+
+- Safe arrival confirmation
+- Pick-up reminders
+- Health alerts (fever, minor injuries)
+- Special moment photos
+- Daily summary at 3 PM
+
+#### Taman Kanak-Kanak (TK A/B) (Age 4-6)
+
+**Development Milestone Tracking:**
+
+- Motor skill development progress
+- Social skill observations
+- Early literacy progress
+- Numeracy skill tracking
+- Character development (Profil Pelajar Pancasila)
+- Weekly progress reports
+
+**Enhanced Communication:**
+
+- Weekly development summaries
+- Upcoming activity requirements
+- Parent involvement opportunities
+- Learning resources for home
+
+#### Sekolah Dasar (SD) (Grade 1-6)
+
+**Academic Focus:**
+
+- Homework tracking and reminders
+- Test/quiz results
+- Project deadlines
+- Class participation reports
+- Subject-wise performance
+- Remedial class notifications
+
+**Behavioral Monitoring:**
+
+- Attendance patterns
+- Discipline records
+- Positive behavior recognition
+- Peer interaction reports
+
+#### Sekolah Menengah Pertama (SMP) (Grade 7-9)
+
+**Pre-Teen Support:**
+
+- Academic performance trends
+- Career guidance insights
+- Extracurricular participation
+- Counseling session summaries
+- High school preparation progress
+- Subject selection guidance
+
+**Reduced Notification Frequency:**
+
+- Weekly academic summaries
+- Critical alerts only
+- Monthly progress reports
+- Term-end comprehensive reviews
+
+#### Sekolah Menengah Atas (SMA) (Grade 10-12)
+
+**University Preparation:**
+
+- GPA tracking and trends
+- University readiness assessments
+- Standardized test preparation
+- Scholarship opportunities
+- Career counseling outcomes
+- College application deadlines
+
+**Minimal Intervention Approach:**
+
+- Monthly performance summaries
+- Critical academic alerts
+- Graduation requirement tracking
+- University application support
+
+### Smart Notification System
+
+**Notification Optimization by Education Level:**
+
+```javascript
+const notificationStrategy = {
+  KB: {
+    frequency: "high",
+    channels: ["push", "whatsapp"],
+    timing: ["07:30", "15:00", "19:00"],
+    batchNonUrgent: false,
+  },
+  TK: {
+    frequency: "high",
+    channels: ["push", "whatsapp", "email"],
+    timing: ["08:00", "15:00", "19:00"],
+    batchNonUrgent: false,
+  },
+  SD: {
+    frequency: "medium",
+    channels: ["push", "email"],
+    timing: ["08:00", "16:00", "20:00"],
+    batchNonUrgent: true,
+    digestTime: "19:00",
+  },
+  SMP: {
+    frequency: "low",
+    channels: ["email", "app"],
+    timing: ["weekly"],
+    batchNonUrgent: true,
+    digestDay: "Friday",
+  },
+  SMA: {
+    frequency: "minimal",
+    channels: ["email", "app"],
+    timing: ["monthly"],
+    criticalOnly: true,
+  },
+};
+```
+
+**Intelligent Notification Categories:**
+
+1. **Critical (All Levels)**
+
+   - Emergency health issues
+   - Unexcused absence
+   - Safety concerns
+   - Urgent parent conference
+
+2. **Academic (Varies by Level)**
+
+   - KB/TK: Development milestones
+   - SD: Test results, homework
+   - SMP/SMA: GPA changes, major assessments
+
+3. **Financial (All Levels)**
+
+   - Payment due reminders
+   - New invoice generated
+   - Payment confirmation
+   - Overdue notices
+
+4. **Behavioral (KB-SMP)**
+
+   - Positive recognition
+   - Discipline issues
+   - Social development
+   - Counseling updates
+
+5. **Administrative (All Levels)**
+   - School closures
+   - Event invitations
+   - Policy updates
+   - Schedule changes
+
+### Parent Engagement Analytics
+
+**Tracking Parent Involvement:**
+
+- Portal login frequency
+- Report card views
+- Message response rates
+- Event participation
+- Payment timeliness
+- Feature usage patterns
+
+**Engagement Improvement:**
+
+- Personalized content recommendations
+- Optimal notification timing
+- Preferred communication channels
+- Language preference analysis
+- Feature adoption suggestions
+
+## V. Student Data Management System
 
 ### Core Student Information
 
@@ -283,6 +552,7 @@ const studentAcademicHistory = {
 - **Health Management**: Medical records, immunization tracking, allergy alerts, medication administration
 - **Behavioral Tracking**: Incident logging, intervention tracking, positive behavior recognition
 - **Document Management**: Digital storage for birth certificates, previous school records, permissions
+- **✅ Parent Portal Access**: Secure parent access to all relevant student information
 
 ### Enhanced Academic Journey Features
 
@@ -313,7 +583,7 @@ Academic Journey Timeline:
 - **Religious Education Progression**: Track Islamic studies or religious education advancement
 - **Cultural Competency Development**: Monitor Indonesian cultural education and local content mastery
 
-## V. Enhanced Financial Management with White-Label Billing
+## VI. Enhanced Financial Management with White-Label Billing
 
 ### White-Label Financial Integration
 
@@ -343,7 +613,7 @@ White-Label Billing Integration:
 - **Retention Impact Analysis**: Billing adjustments for grade retention scenarios
 - **Academic Year Continuity**: Seamless billing across multi-year academic journeys
 
-## VI. Advanced Technology Features
+## VII. Advanced Technology Features
 
 ### White-Label Technology Stack
 
@@ -370,14 +640,17 @@ White-Label Billing Integration:
 - **Achievement Gallery**: Multi-year collection of academic and personal achievements
 - **Goal Setting**: Set academic goals based on historical data and progression patterns
 
-### Parent Mobile App with Enhanced Tracking
+### Parent Mobile App with Enhanced Features
 
 - **Complete Academic Overview**: Full visibility into child's academic journey
 - **✅ White-Label Branding**: School-branded mobile app experience
 - **Historical Performance Analysis**: Track academic trends and improvements over time
 - **Milestone Celebrations**: Automated notifications for academic achievements and progressions
+- **✅ Multi-Language Interface**: Full app localization based on parent preferences
+- **✅ Daily Activity Feed**: Real-time updates for KB/TK parents with photos and notes
+- **✅ Smart Notification Management**: Education level-appropriate notification settings
 
-## VII. Advanced Reporting and Analytics
+## VIII. Advanced Reporting and Analytics
 
 ### White-Label Reporting System
 
@@ -404,7 +677,24 @@ White-Label Billing Integration:
 - **Career Pathway Identification**: Academic strength analysis for career guidance
 - **Learning Difficulty Early Detection**: Identify potential learning challenges early
 
-## VIII. Implementation Strategy
+### Parent Engagement Analytics
+
+**Parent Portal Usage Reports:**
+
+- Login frequency by education level
+- Feature utilization patterns
+- Communication engagement rates
+- Payment behavior analysis
+- Notification effectiveness metrics
+
+**Multi-Language Analytics:**
+
+- Language preference distribution
+- Translation usage statistics
+- Cross-language communication patterns
+- Document language preferences
+
+## IX. Implementation Strategy
 
 ### White-Label Deployment Process
 
@@ -435,14 +725,38 @@ White-Label Billing Integration:
 - Grade progression validation
 - Performance correlation establishment
 
+### Parent Portal Implementation
+
+**Phase 1: Basic Parent Access (Month 1)**
+
+- Parent authentication system
+- Child data viewing
+- Basic notification system
+- Payment viewing
+
+**Phase 2: Enhanced Features (Month 2-3)**
+
+- Multi-language support
+- Daily activity tracking (KB/TK)
+- Communication features
+- Mobile app deployment
+
+**Phase 3: Advanced Analytics (Month 4)**
+
+- Engagement tracking
+- Notification optimization
+- Predictive analytics
+- Parent feedback system
+
 **Training and Adoption:**
 
 - Staff training on academic history features
 - Parent orientation on student timeline access
 - Teacher training on historical data usage
 - Administrator training on progression analytics
+- Parent portal onboarding guides in multiple languages
 
-## IX. Pricing Structure Enhancement
+## X. Pricing Structure Enhancement
 
 ### White-Label Pricing Model
 
@@ -464,7 +778,23 @@ Academic History Analytics:
 └── Custom: Advanced ML-powered insights
 ```
 
-## X. Success Metrics and KPIs
+### Parent Portal Features Pricing
+
+```
+Parent Engagement Package:
+├── Basic: Standard parent access (included)
+├── Premium: +Rp 5,000/student/month
+│   ├── Daily activity tracking
+│   ├── Real-time notifications
+│   └── Multi-language support
+├── Enterprise: +Rp 10,000/student/month
+│   ├── All Premium features
+│   ├── Advanced analytics
+│   ├── Priority support
+│   └── Custom integrations
+```
+
+## XI. Success Metrics and KPIs
 
 ### White-Label Success Indicators
 
@@ -480,31 +810,15 @@ Academic History Analytics:
 - **Parent Engagement**: Increased parent involvement through comprehensive history access
 - **Teacher Effectiveness**: Improved instruction through student history awareness
 
----
+### Parent Portal Success Metrics
 
-## Conclusion
+- **Engagement Rate**: 80%+ monthly active parents
+- **Communication Efficiency**: 50% reduction in phone inquiries
+- **Payment Timeliness**: 30% improvement in on-time payments
+- **Satisfaction Score**: 4.5+ star rating on app stores
+- **Feature Adoption**: 70%+ using key features monthly
 
-This enhanced educational management system now provides Indonesian multi-tenant networks with the most comprehensive white-label customization and student academic history tracking available in the market. The integration of advanced branding capabilities with complete academic journey documentation creates a powerful platform that not only serves immediate operational needs but also builds long-term educational value through comprehensive student development tracking.
-
-The white-label system enables schools to maintain their unique identity while benefiting from world-class educational technology, while the academic history features ensure no student's educational journey is ever fragmented or lost. This combination represents the future of educational technology in Indonesia, providing both institutional branding freedom and unprecedented academic continuity.
-
-## X. Success Metrics and KPIs
-
-### White-Label Success Indicators
-
-- **Brand Recognition**: Increased school brand visibility and recognition
-- **User Engagement**: Higher app usage with branded interface
-- **Parent Satisfaction**: Improved satisfaction with school-branded communications
-- **Market Differentiation**: Competitive advantage through custom branding
-
-### Academic History Impact Metrics
-
-- **Student Retention**: Improved retention through better academic tracking
-- **Academic Outcomes**: Enhanced academic performance through historical insights
-- **Parent Engagement**: Increased parent involvement through comprehensive history access
-- **Teacher Effectiveness**: Improved instruction through student history awareness
-
-## XI. Strategi Sukses: Solo Developer + Modul Akademik
+## XII. Strategi Sukses: Solo Developer + Modul Akademik
 
 ### Phase 1: Foundation (Bulan 1-2)
 
@@ -554,11 +868,11 @@ Sprint 5-6: Academic Features
 ├── Attendance tracking
 └── Basic reporting
 
-Sprint 7-8: Testing & Polish
-├── Bug fixing
-├── Performance optimization
-├── User feedback iteration
-└── Documentation
+Sprint 7-8: Parent Portal Foundation
+├── Parent authentication
+├── Multi-child support
+├── Basic notifications
+└── Payment viewing
 ```
 
 ### Critical Success Factors:
@@ -572,10 +886,12 @@ src/
 │   ├── auth/
 │   ├── students/
 │   ├── academic/
+│   ├── parents/     // New parent module
 │   └── common/
 ├── shared/
 │   ├── database/
 │   ├── guards/
+│   ├── notifications/  // Notification service
 │   └── utils/
 └── config/
 ```
@@ -586,6 +902,7 @@ src/
 -- Simplified but scalable schema
 -- Focus pada relasi yang clean
 -- Avoid over-engineering early
+-- Parent portal as first-class citizen
 ```
 
 #### 3. **AI Tools Optimization**
@@ -653,16 +970,17 @@ Month 3-4: Core Features
 ├── Class & Teacher: 2 minggu
 ├── Academic Year Setup: 3 minggu
 
-Month 5-6: Academic Features
+Month 5-6: Academic Features + Parent Portal
 ├── Enrollment System: 2 minggu
-├── Attendance: 2 minggu
+├── Parent Portal Base: 2 minggu
 ├── Grading: 2 minggu
 ├── Basic Reports: 2 minggu
 
-Month 7-8: Polish
-├── Bug Fixing: 3 minggu
-├── Performance: 2 minggu
-├── Documentation: 3 minggu
+Month 7-8: Enhanced Parent Features
+├── Multi-language Support: 2 minggu
+├── Notification System: 2 minggu
+├── Daily Activity (KB/TK): 2 minggu
+├── Mobile App MVP: 2 minggu
 
 Month 9-10: Advanced Features
 ├── Academic History: 3 minggu
@@ -683,6 +1001,7 @@ Month 11-12: Production Ready
 - Say NO to additional requests
 - Document out-of-scope items
 - Focus on MVP first
+- Parent portal is CORE, not optional
 
 #### 2. **Technical Debt Management**
 
@@ -701,11 +1020,11 @@ Month 11-12: Production Ready
 ### Monthly Checkpoints:
 
 **Month 2:** Auth working, basic CRUD
-**Month 4:** Students can be enrolled
-**Month 6:** Basic academic features complete
-**Month 8:** System usable for pilot
+**Month 4:** Students can be enrolled, parents can login
+**Month 6:** Basic academic features complete, parent portal functional
+**Month 8:** Parent features enhanced with notifications
 **Month 10:** Feature-complete for launch
-**Month 12:** Production-ready
+**Month 12:** Production-ready with parent mobile app
 
 ### Pro Tips untuk Solo Developer:
 
@@ -735,3 +1054,7 @@ Month 11-12: Production Ready
 ---
 
 ## Conclusion
+
+This enhanced educational management system now provides Indonesian multi-tenant networks with the most comprehensive white-label customization, student academic history tracking, and parent engagement platform available in the market. The integration of advanced branding capabilities with complete academic journey documentation and multi-language parent portal creates a powerful platform that not only serves immediate operational needs but also builds long-term educational value through comprehensive student development tracking and active parent involvement.
+
+The parent portal with education level-specific features and smart notification system ensures parents stay engaged without being overwhelmed, while the white-label system enables schools to maintain their unique identity. This combination represents the future of educational technology in Indonesia, providing institutional branding freedom, unprecedented academic continuity, and meaningful parent-school partnerships.
