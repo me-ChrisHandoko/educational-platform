@@ -453,11 +453,8 @@ model User {
   phoneNumber   String?
   phoneVerified Boolean    @default(false)
 
-  // ✅ ENHANCED: Multi-language preferences
-  preferredLanguage    String  @default("id") // Default language preference
-  uiLanguage           String? // Language untuk interface (jika berbeda dari preferred)
-  notificationLanguage String? // Language untuk notifikasi (email, SMS, push)
-  documentLanguage     String? // Language untuk dokumen (rapor, invoice, dll)
+  // ✅ SIMPLIFIED: Single language preference
+  preferredLanguage String @default("id") // Single language for all contexts
 
   twoFactorEnabled Boolean   @default(false)
   twoFactorSecret  String?
@@ -475,10 +472,11 @@ model User {
   notifications Notification[]
 
   // Role-specific relations
-  teacherProfile Teacher?
-  studentProfile Student?
-  parentProfile  Parent?
-  staffProfile   Staff?
+  teacherProfile      Teacher?
+  studentProfile      Student?
+  parentProfile       Parent?
+  staffProfile        Staff?
+  UserLanguageHistory UserLanguageHistory[]
 
   @@index([schoolId])
   @@index([email])
@@ -611,12 +609,36 @@ model ParentPortalMetrics {
   loginCount        Int       @default(0)
   preferredDevice   String? // mobile, tablet, desktop
   appVersion        String? // For mobile app tracking
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+
+  // ✅ NEW: Track language preference changes
+  languageChangeCount Int       @default(0) // How many times language changed
+  lastLanguageChange  DateTime? // When was the last change
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   parent Parent @relation(fields: [parentId], references: [id])
 
   @@map("parent_portal_metrics")
+  @@schema("tenant")
+}
+
+model UserLanguageHistory {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  fromLanguage  String? // Previous language (null for first set)
+  toLanguage    String // New language
+  changedBy     String   @db.Uuid // Who made the change (could be self)
+  changedReason String? // Optional reason for change
+  changedAt     DateTime @default(now())
+  ipAddress     String? // IP address when changed
+  userAgent     String? // Browser/app info
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([changedAt])
+  @@map("user_language_history")
   @@schema("tenant")
 }
 
@@ -1644,15 +1666,19 @@ model Conversation {
 }
 
 model Notification {
-  id        String           @id @default(uuid()) @db.Uuid
-  userId    String           @db.Uuid
-  type      NotificationType
-  title     String
-  content   String
+  id      String           @id @default(uuid()) @db.Uuid
+  userId  String           @db.Uuid
+  type    NotificationType
+  title   String
+  content String
+
+  // ✅ CONSIDER ADDING: Track language used for this notification
+  language String @default("id") // Language used when creating this notification
+
   data      Json?
   readAt    DateTime?
   clickedAt DateTime?
-  createdAt DateTime         @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
@@ -1792,13 +1818,17 @@ model EmailLog {
   recipientId    String            @db.Uuid // User ID
   recipientEmail String
   subject        String
-  status         EmailStatus       @default(PENDING)
-  sentAt         DateTime?
-  openedAt       DateTime?
-  clickedAt      DateTime?
-  errorMessage   String?
-  metadata       Json              @default("{}")
-  createdAt      DateTime          @default(now())
+
+  // ✅ CONSIDER ADDING: Track language used for this email
+  language String @default("id") // Language used for this email
+
+  status       EmailStatus @default(PENDING)
+  sentAt       DateTime?
+  openedAt     DateTime?
+  clickedAt    DateTime?
+  errorMessage String?
+  metadata     Json        @default("{}")
+  createdAt    DateTime    @default(now())
 
   @@index([recipientId])
   @@index([status])

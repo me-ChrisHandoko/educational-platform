@@ -328,22 +328,33 @@ The parent portal provides a complete view of their children's educational journ
 
 ### Multi-Language Support for Parents
 
-**Language Preference Management:**
+**Simplified Language Preference Management:**
 
 ```javascript
 const parentLanguageSettings = {
-  preferredLanguage: "id", // Default language
-  uiLanguage: "en", // Interface language
-  notificationLanguage: "id", // Notification language
-  documentLanguage: "zh", // Document language (reports, invoices)
+  preferredLanguage: "id", // Single language preference
 
-  // Language contexts
-  contexts: {
-    mobileApp: "preferredLanguage",
-    emailNotifications: "notificationLanguage",
-    reportCards: "documentLanguage",
-    teacherChat: "preferredLanguage",
+  // This single preference applies to all contexts
+  applicationScope: {
+    webInterface: true,
+    mobileApp: true,
+    emailNotifications: true,
+    pushNotifications: true,
+    smsNotifications: true,
+    reportCards: true,
+    invoices: true,
+    teacherCommunication: true,
+    schoolAnnouncements: true,
   },
+
+  // Language change history for tracking
+  languageHistory: [
+    {
+      language: "id",
+      changedAt: "2025-01-15T10:00:00Z",
+      changedBy: "parent_self",
+    },
+  ],
 };
 ```
 
@@ -353,6 +364,13 @@ const parentLanguageSettings = {
 - English (en)
 - Mandarin Chinese (zh)
 - Additional languages as configured by tenant
+
+**Unified Language Experience:**
+
+1. **Web & Mobile Interface**: All UI elements, menus, buttons, and labels displayed in preferred language
+2. **Notifications**: All push notifications, emails, and SMS sent in preferred language
+3. **Documents**: Report cards, invoices, and official documents generated in preferred language
+4. **Communication**: Default language for teacher-parent messaging (teachers see parent's preferred language)
 
 ### Education Level-Specific Features
 
@@ -646,7 +664,7 @@ White-Label Billing Integration:
 - **✅ White-Label Branding**: School-branded mobile app experience
 - **Historical Performance Analysis**: Track academic trends and improvements over time
 - **Milestone Celebrations**: Automated notifications for academic achievements and progressions
-- **✅ Multi-Language Interface**: Full app localization based on parent preferences
+- **✅ Multi-Language Interface**: Full app localization based on parent's single language preference
 - **✅ Daily Activity Feed**: Real-time updates for KB/TK parents with photos and notes
 - **✅ Smart Notification Management**: Education level-appropriate notification settings
 
@@ -736,7 +754,7 @@ White-Label Billing Integration:
 
 **Phase 2: Enhanced Features (Month 2-3)**
 
-- Multi-language support
+- Multi-language support (single preference)
 - Daily activity tracking (KB/TK)
 - Communication features
 - Mobile app deployment
@@ -1055,6 +1073,6 @@ Month 11-12: Production Ready
 
 ## Conclusion
 
-This enhanced educational management system now provides Indonesian multi-tenant networks with the most comprehensive white-label customization, student academic history tracking, and parent engagement platform available in the market. The integration of advanced branding capabilities with complete academic journey documentation and multi-language parent portal creates a powerful platform that not only serves immediate operational needs but also builds long-term educational value through comprehensive student development tracking and active parent involvement.
+This enhanced educational management system now provides Indonesian multi-tenant networks with the most comprehensive white-label customization, student academic history tracking, and parent engagement platform available in the market. The integration of advanced branding capabilities with complete academic journey documentation and simplified multi-language parent portal creates a powerful platform that not only serves immediate operational needs but also builds long-term educational value through comprehensive student development tracking and active parent involvement.
 
-The parent portal with education level-specific features and smart notification system ensures parents stay engaged without being overwhelmed, while the white-label system enables schools to maintain their unique identity. This combination represents the future of educational technology in Indonesia, providing institutional branding freedom, unprecedented academic continuity, and meaningful parent-school partnerships.
+The parent portal with education level-specific features and smart notification system ensures parents stay engaged without being overwhelmed, while the white-label system enables schools to maintain their unique identity. The simplified single language preference system ensures consistency across all touchpoints, reducing complexity for both parents and developers. This combination represents the future of educational technology in Indonesia, providing institutional branding freedom, unprecedented academic continuity, and meaningful parent-school partnerships.
