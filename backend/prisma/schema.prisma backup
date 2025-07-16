@@ -33,38 +33,19 @@ model Platform {
 }
 
 model Tenant {
-  id         String       @id @default(uuid()) @db.Uuid
-  platformId String       @db.Uuid
-  name       String
-  code       String       @unique @db.VarChar(50)
-  status     TenantStatus @default(ACTIVE)
-  settings   Json         @default("{}")
+  id          String       @id @default(uuid()) @db.Uuid
+  platformId  String       @db.Uuid
+  name        String
+  code        String       @unique @db.VarChar(50)
+  status      TenantStatus @default(ACTIVE)
+  settings    Json         @default("{}")
+  billingInfo Json
 
-  // ✅ UPDATED: Simplified billing information
-  billingInfo Json @default("{}")
-  /**
-   * Struktur billingInfo yang disederhanakan:
-   * {
-   * "model": "PER_STUDENT", // Default pricing model
-   * "pricePerStudent": 15000, // Current rate
-   * "billingCycle": "MONTHLY", // Payment frequency
-   * "paymentTerms": 30, // Days to pay
-   * "volumeDiscounts": [
-   * { "minStudents": 500, "discount": 10 },
-   * { "minStudents": 1000, "discount": 20 }
-   * ]
-   * }
-   */
-
-  // ✅ UPDATED: Real-time metrics
-  currentStudents  Int      @default(0)
-  lastStudentCount Int      @default(0) // Previous billing period count
-  studentCountDate DateTime @default(now()) // When count was last updated
-
-  billingEmail   String?
-  billingAddress Json?
-
-  // ✅ REMOVED: subscriptionTier - Not needed for per-student model
+  // Subscription details
+  currentStudents  Int     @default(0) // Real-time student count
+  billingEmail     String? // Billing contact
+  billingAddress   Json? // Billing address
+  subscriptionTier String  @default("essential") // Current pricing tier
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -73,132 +54,30 @@ model Tenant {
   schools       School[]
   tenantUsers   TenantUser[]
   subscriptions Subscription[]
-  usage         TenantUsage[]
-
-  // ✅ NEW: Direct billing relationships
-  invoices      TenantInvoice[]
-  payments      TenantPayment[]
-  billingAlerts BillingAlert[]
+  usage         TenantUsage[] // Usage tracking
 
   @@index([platformId])
   @@index([status])
-  @@index([currentStudents])
+  @@index([currentStudents]) // For pricing tier calculation
   @@map("tenants")
-  @@schema("public")
-}
-
-model TenantInvoice {
-  id            String @id @default(uuid()) @db.Uuid
-  tenantId      String @db.Uuid
-  invoiceNumber String @unique
-
-  // Period information
-  billingPeriod DateTime @db.Date // Which month/period
-  periodStart   DateTime @db.Date
-  periodEnd     DateTime @db.Date
-
-  // Student count details
-  studentCount    Int // Number of students for this period
-  avgStudentCount Int? // Average if using daily calculation
-  pricePerStudent Decimal @db.Decimal(10, 2)
-
-  // Amount breakdown
-  baseAmount     Decimal @db.Decimal(12, 2) // studentCount × pricePerStudent
-  volumeDiscount Decimal @default(0) @db.Decimal(12, 2)
-  additionalFees Decimal @default(0) @db.Decimal(12, 2) // Language, white-label, etc
-  tax            Decimal @default(0) @db.Decimal(12, 2) // PPN 11%
-  totalAmount    Decimal @db.Decimal(12, 2)
-
-  // Payment tracking
-  status     InvoiceStatus @default(PENDING)
-  dueDate    DateTime
-  paidAmount Decimal       @default(0) @db.Decimal(12, 2)
-  paidAt     DateTime?
-
-  // Metadata
-  notes     String?
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tenant    Tenant            @relation(fields: [tenantId], references: [id])
-  payments  TenantPayment[]
-  lineItems InvoiceLineItem[]
-
-  @@index([tenantId])
-  @@index([status])
-  @@index([dueDate])
-  @@index([billingPeriod])
-  @@map("tenant_invoices")
-  @@schema("public")
-}
-
-// 3. ✅ NEW: Invoice line items for transparency
-model InvoiceLineItem {
-  id          String       @id @default(uuid()) @db.Uuid
-  invoiceId   String       @db.Uuid
-  itemType    LineItemType
-  description String
-  quantity    Int          @default(1)
-  unitPrice   Decimal      @db.Decimal(10, 2)
-  amount      Decimal      @db.Decimal(12, 2)
-  metadata    Json         @default("{}")
-
-  invoice TenantInvoice @relation(fields: [invoiceId], references: [id])
-
-  @@index([invoiceId])
-  @@map("invoice_line_items")
-  @@schema("public")
-}
-
-// 4. ✅ NEW: Simplified payment tracking
-model TenantPayment {
-  id        String  @id @default(uuid()) @db.Uuid
-  tenantId  String  @db.Uuid
-  invoiceId String? @db.Uuid
-
-  amount         Decimal @db.Decimal(12, 2)
-  paymentMethod  String
-  paymentGateway String?
-  transactionId  String  @unique
-
-  status        PaymentStatus @default(PENDING)
-  paidAt        DateTime?
-  failureReason String?
-
-  // Gateway response
-  gatewayResponse Json?
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tenant  Tenant         @relation(fields: [tenantId], references: [id])
-  invoice TenantInvoice? @relation(fields: [invoiceId], references: [id])
-
-  @@index([tenantId])
-  @@index([status])
-  @@index([paidAt])
-  @@map("tenant_payments")
   @@schema("public")
 }
 
 model School {
   id           String  @id @default(uuid()) @db.Uuid
   tenantId     String  @db.Uuid
-  schemaName   String  @unique @db.VarChar(100)
+  schemaName   String  @unique @db.VarChar(100) // For schema isolation
   name         String
   code         String  @unique @db.VarChar(50)
-  npsn         String? @unique @db.VarChar(20)
+  npsn         String? @unique @db.VarChar(20) // National School ID
   subdomain    String  @unique
   customDomain String? @unique
 
-  // ✅ ENHANCED: White label configuration
-  whiteLabelConfig Json @default("{}")
+  // === WHITE LABEL CONFIGURATION ===
+  whiteLabelConfig Json @default("{}") // Konfigurasi white label
   /**
-   * Enhanced whiteLabelConfig structure:
+   * Struktur whiteLabelConfig:
    * {
-   * "tier": "basic" | "premium" | "enterprise",
    * "enabled": true,
    * "branding": {
    * "logo": "https://cdn.school.com/logo.png",
@@ -206,29 +85,24 @@ model School {
    * "primaryColor": "#1e40af",
    * "secondaryColor": "#64748b",
    * "fontFamily": "Inter",
-   * "customCSS": "...",
-   * "emailLogo": "https://...", // ✅ NEW: For email branding
-   * "invoiceLogo": "https://..." // ✅ NEW: For invoice branding
+   * "customCSS": "body { ... }"
    * },
    * "domain": {
    * "customDomain": "www.sekolahku.sch.id",
    * "sslEnabled": true,
    * "sslProvider": "letsencrypt",
-   * "sslExpiry": "2025-12-31",
-   * "verificationStatus": "verified"
+   * "sslExpiry": "2025-12-31"
    * },
    * "features": {
    * "hidePlatformBranding": true,
    * "customLoginPage": true,
    * "customEmailTemplates": true,
-   * "mobileAppBranding": true,
-   * "customInvoiceTemplate": true, // ✅ NEW
-   * "customPaymentPortal": true    // ✅ NEW
+   * "mobileAppBranding": true
    * },
-   * "billing": { // ✅ NEW: White label billing info
-   * "setupPaid": true,
-   * "monthlyFee": 1500000,
-   * "nextBillingDate": "2025-02-01"
+   * "seo": {
+   * "title": "Sekolah Kusuma Bangsa",
+   * "description": "Portal akademik terdepan",
+   * "keywords": ["sekolah", "akademik", "pendidikan"]
    * }
    * }
    */
@@ -240,39 +114,16 @@ model School {
   address       Json
   contactInfo   Json
   accreditation String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  // ✅ NEW: Parent portal configuration
-  parentPortalConfig Json @default("{}")
-  /**
-   * {
-   * "features": {
-   * "dailyActivities": true, // For KB/TK
-   * "mealTracking": true,
-   * "photoSharing": true,
-   * "realtimeNotifications": true,
-   * "onlinePayments": true
-   * },
-   * "notificationDefaults": {
-   * "KB": { "frequency": "high", "channels": ["push", "whatsapp"] },
-   * "TK": { "frequency": "high", "channels": ["push", "email"] },
-   * "SD": { "frequency": "medium", "channels": ["email"] },
-   * "SMP": { "frequency": "low", "channels": ["email"] },
-   * "SMA": { "frequency": "minimal", "channels": ["email"] }
-   * }
-   * }
-   */
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tenant           Tenant            @relation(fields: [tenantId], references: [id])
-  schoolLanguages  SchoolLanguage[]
-  installmentPlans InstallmentPlan[]
+  tenant          Tenant           @relation(fields: [tenantId], references: [id])
+  schoolLanguages SchoolLanguage[]
 
   @@index([tenantId])
   @@index([status])
   @@index([type])
-  @@index([customDomain])
+  @@index([customDomain]) // Index untuk performa routing domain
   @@map("schools")
   @@schema("public")
 }
@@ -321,67 +172,29 @@ model SchoolLanguage {
   @@schema("public")
 }
 
-model SubscriptionPlan {
-  id          String  @id @default(uuid()) @db.Uuid
-  name        String // "Essential", "Professional", "Enterprise"
-  code        String  @unique
-  description String?
-
-  // ✅ SIMPLIFIED: Per-student pricing
-  basePrice   Decimal @db.Decimal(10, 2) // Base price per student
-  minStudents Int     @default(100) // Minimum students required
-  maxStudents Int? // null = unlimited
-
-  // ✅ NEW: Volume discount tiers built-in
-  volumeDiscounts Json @default("[]")
-  /**
-   * [
-   * { "minStudents": 500, "discount": 10 },
-   * { "minStudents": 1000, "discount": 20 },
-   * { "minStudents": 2000, "discount": 30 }
-   * ]
-   */
-
-  // Features
-  features          Json
-  includedLanguages Int  @default(2)
-
-  // ✅ SIMPLIFIED: Always monthly billing with annual discount option
-  annualDiscount Decimal @default(10) @db.Decimal(5, 2) // 10% for annual payment
-
-  status    BaseStatus @default(ACTIVE)
-  isDefault Boolean    @default(false) // Default plan for new tenants
-  sortOrder Int        @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  subscriptions Subscription[]
-
-  @@index([status])
-  @@index([sortOrder])
-  @@map("subscription_plans")
-  @@schema("public")
-}
-
-// ✅ ADD: Missing Subscription model
+// Subscription & Billing
 model Subscription {
-  id        String             @id @default(uuid()) @db.Uuid
-  tenantId  String             @db.Uuid
-  planId    String             @db.Uuid
-  status    SubscriptionStatus @default(ACTIVE)
-  startDate DateTime           @default(now())
-  endDate   DateTime?
-
-  // Billing details
+  id                 String             @id @default(uuid()) @db.Uuid
+  tenantId           String             @db.Uuid
+  planId             String             @db.Uuid
+  status             SubscriptionStatus @default(ACTIVE)
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
 
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Per-student billing details
+  billedStudents   Int     @default(0) // Students billed in current period
+  pricePerStudent  Decimal @db.Decimal(10, 2) // Current rate per student
+  lastBilledAmount Decimal @default(0) @db.Decimal(12, 2) // Last billing amount
 
-  tenant Tenant           @relation(fields: [tenantId], references: [id])
-  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+  cancelAt   DateTime?
+  canceledAt DateTime?
+  metadata   Json      @default("{}")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id])
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+  invoices Invoice[]
 
   @@index([tenantId])
   @@index([status])
@@ -389,91 +202,106 @@ model Subscription {
   @@schema("public")
 }
 
-// 8. ✅ NEW: Price history tracking
-model PriceHistory {
-  id       String @id @default(uuid()) @db.Uuid
-  tenantId String @db.Uuid
+model SubscriptionPlan {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String // "Per-Student Essential", "Per-Student Professional"
+  code        String  @unique
+  description String?
 
-  changeType    PriceChangeType
-  previousValue Json
-  newValue      Json
+  // Per-student pricing structure
+  minStudents     Int     @default(1)
+  maxStudents     Int? // null = unlimited
+  pricePerStudent Decimal @db.Decimal(10, 2) // Price per student per month
 
-  reason        String
-  approvedBy    String   @db.Uuid
-  effectiveDate DateTime
+  // Feature set for this tier
+  features          Json // Feature list
+  includedLanguages Int  @default(2) // Free languages included
 
-  // Impact analysis
-  affectedStudents Int
-  monthlyImpact    Decimal @db.Decimal(12, 2)
+  billingPeriod BillingPeriod @default(MONTHLY)
+  status        BaseStatus    @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
+  subscriptions Subscription[]
 
-  @@index([tenantId])
-  @@index([effectiveDate])
-  @@map("price_history")
+  @@map("subscription_plans")
   @@schema("public")
 }
 
 model TenantUsage {
-  id         String   @id @default(uuid()) @db.Uuid
-  tenantId   String   @db.Uuid
-  recordDate DateTime @db.Date // Daily tracking
+  id            String   @id @default(uuid()) @db.Uuid
+  tenantId      String   @db.Uuid
+  billingPeriod DateTime @db.Date // Month/quarter being billed
 
-  // ✅ SIMPLIFIED: Focus on student counts
-  activeStudents Int // Count for this day
-  newEnrollments Int @default(0)
-  withdrawals    Int @default(0)
+  // Student counts
+  totalStudents     Int // Active students in this period
+  newStudents       Int @default(0) // New enrollments
+  withdrawnStudents Int @default(0) // Students who left
 
-  // ✅ SIMPLIFIED: Basic metrics only
-  activeSchools  Int
-  activeTeachers Int
+  // Usage metrics
+  schoolCount  Int // Number of active schools
+  teacherCount Int // Number of active teachers
+  storageUsed  BigInt @default(0) // Storage in bytes
+  apiCalls     Int    @default(0) // API usage
 
-  // ✅ REMOVED: Complex billing calculations (moved to invoice generation)
+  // Language usage
+  enabledLanguages String[] // Currently enabled languages
+  languageChanges  Json     @default("[]") // Language additions/removals
+
+  // Calculated billing
+  baseFee         Decimal @db.Decimal(12, 2) // Student-based fee
+  languageFees    Decimal @default(0) @db.Decimal(12, 2)
+  premiumFeatures Decimal @default(0) @db.Decimal(12, 2)
+  totalBilled     Decimal @db.Decimal(12, 2)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
-  @@unique([tenantId, recordDate])
-  @@index([recordDate])
+  @@unique([tenantId, billingPeriod])
+  @@index([billingPeriod])
   @@map("tenant_usage")
   @@schema("public")
 }
 
-model BillingAlert {
-  id        String    @id @default(uuid()) @db.Uuid
-  tenantId  String    @db.Uuid
-  alertType AlertType
+model Invoice {
+  id             String        @id @default(uuid()) @db.Uuid
+  subscriptionId String        @db.Uuid
+  invoiceNumber  String        @unique
+  status         InvoiceStatus @default(PENDING)
 
-  title    String
-  message  String
-  severity AlertSeverity
+  // Per-student billing breakdown
+  billingPeriod   DateTime @db.Date // Billing month/period
+  studentCount    Int // Number of students billed
+  pricePerStudent Decimal  @db.Decimal(10, 2) // Rate used for this invoice
+  baseAmount      Decimal  @db.Decimal(12, 2) // Student-based amount
+  languageFees    Decimal  @default(0) @db.Decimal(12, 2) // Language add-ons
+  premiumFeatures Decimal  @default(0) @db.Decimal(12, 2) // Premium features
 
-  // Alert details
-  relatedInvoiceId String?  @db.Uuid
-  dueAmount        Decimal? @db.Decimal(12, 2)
-  daysOverdue      Int?
+  // White label billing breakdown
+  whiteLabelSetupFee   Decimal @default(0) @db.Decimal(12, 2) // One-time setup fee
+  whiteLabelMonthlyFee Decimal @default(0) @db.Decimal(12, 2) // Monthly white label fee
+  customDomainFee      Decimal @default(0) @db.Decimal(12, 2) // Custom domain fee
+  mobileAppBrandingFee Decimal @default(0) @db.Decimal(12, 2) // Mobile app branding fee
 
-  // Status tracking
-  isRead      Boolean   @default(false)
-  readAt      DateTime?
-  isDismissed Boolean   @default(false)
-  dismissedAt DateTime?
+  amount        Decimal   @db.Decimal(12, 2) // Total invoice amount
+  tax           Decimal   @default(0) @db.Decimal(12, 2)
+  currency      String    @default("IDR")
+  dueDate       DateTime
+  paidAt        DateTime?
+  paymentMethod String?
+  metadata      Json      @default("{}")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  // Actions
-  actionUrl  String?
-  actionText String?
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
 
-  createdAt DateTime  @default(now())
-  expiresAt DateTime?
-
-  tenant Tenant @relation(fields: [tenantId], references: [id])
-
-  @@index([tenantId, isRead])
-  @@index([alertType])
-  @@index([createdAt])
-  @@map("billing_alerts")
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([billingPeriod])
+  @@map("invoices")
   @@schema("public")
 }
 
@@ -499,54 +327,40 @@ model PlatformFeature {
 // White Label Plans
 model WhiteLabelPlan {
   id          String  @id @default(uuid()) @db.Uuid
-  name        String // "Basic", "Premium", "Enterprise"
+  name        String // "Basic White Label", "Premium White Label"
   code        String  @unique
   description String?
 
-  // ✅ SIMPLIFIED: Clear pricing structure
-  setupFee   Decimal @db.Decimal(12, 2) // One-time setup
-  monthlyFee Decimal @db.Decimal(12, 2) // Monthly recurring
-
-  // ✅ REMOVED: Separate fees for domain/mobile (included in tier)
+  // Pricing structure
+  setupFee        Decimal @db.Decimal(12, 2) // Biaya setup sekali
+  monthlyFee      Decimal @db.Decimal(12, 2) // Biaya bulanan
+  customDomainFee Decimal @db.Decimal(12, 2) // Biaya domain custom per tahun
+  mobileAppFee    Decimal @db.Decimal(12, 2) // Biaya mobile app branding per bulan
 
   // Features included
   features Json @default("{}")
   /**
-   * Simplified features:
+   * Struktur features:
    * {
-   * "basic": {
-   * "customLogo": true,
-   * "customColors": true,
-   * "hidePlatformBranding": true,
-   * "subdomain": true
-   * },
-   * "premium": {
-   * ...basic features,
    * "customDomain": true,
    * "sslCertificate": true,
-   * "customCSS": true,
-   * "emailBranding": true,
-   * "invoiceBranding": true
-   * },
-   * "enterprise": {
-   * ...premium features,
-   * "mobileAppBranding": true,
-   * "multiDomain": true,
-   * "apiWhiteLabel": true,
-   * "prioritySupport": true
-   * }
+   * "logoCustomization": true,
+   * "colorCustomization": true,
+   * "hidePlatformBranding": true,
+   * "customEmailTemplates": true,
+   * "mobileAppBranding": false,
+   * "customCSSSupport": true,
+   * "prioritySupport": true,
+   * "maxCustomDomains": 1
    * }
    */
 
-  sortOrder Int        @default(0)
   status    BaseStatus @default(ACTIVE)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   subscriptions WhiteLabelSubscription[]
 
-  @@index([status])
-  @@index([sortOrder])
   @@map("white_label_plans")
   @@schema("public")
 }
@@ -697,7 +511,7 @@ model Student {
   id                  String        @id @default(uuid()) @db.Uuid
   userId              String        @unique @db.Uuid
   schoolId            String        @db.Uuid
-  currentEnrollmentId String?       @unique @db.Uuid // Link to active enrollment
+  currentEnrollmentId String?       @db.Uuid // Link to active enrollment
   studentNumber       String        @unique
   nisn                String?       @unique // National Student Number
   nik                 String? // National ID
@@ -717,9 +531,7 @@ model Student {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relations
-  currentEnrollment    Enrollment?            @relation("CurrentEnrollment", fields: [currentEnrollmentId], references: [id])
-  enrollments          Enrollment[]           @relation("StudentEnrollments")
+  enrollments          Enrollment[]
   attendances          StudentAttendance[]
   academicRecords      AcademicRecord[]
   assessments          StudentAssessment[]
@@ -729,11 +541,6 @@ model Student {
   dailyActivities      StudentDailyActivity[] // ✅ NEW: For KB/TK daily tracking
   ParentTeacherMessage ParentTeacherMessage[]
   ParentConsent        ParentConsent[]
-
-  // ✅ RESTORED: Payment-related relations
-  feeAssignments   FeeAssignment[]
-  payments         Payment[]
-  paymentReminders PaymentReminder[]
 
   @@index([schoolId])
   @@index([studentNumber])
@@ -745,102 +552,28 @@ model Student {
 
 // Parent Management
 model Parent {
-  id            String  @id @default(uuid()) @db.Uuid
-  userId        String  @unique @db.Uuid
-  nik           String? @unique
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @unique @db.Uuid
+  nik           String?  @unique
   occupation    String?
   employer      String?
   income        String? // Encrypted
   education     String?
   maritalStatus String?
+  metadata      Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  // ✅ NEW: Parent preferences
-  preferences Json @default("{}")
-  /**
-   * {
-   * "communicationChannel": "whatsapp", // preferred channel
-   * "notificationTime": "19:00", // preferred time for non-urgent
-   * "weekendNotifications": false,
-   * "photoSharing": true, // consent for photo sharing
-   * "language": "id" // preferred language (redundant with user.preferredLanguage)
-   * }
-   */
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentRelations StudentParent[]
 
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user              User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  studentRelations  StudentParent[]
+  // ✅ NEW: Parent engagement tracking
   portalMetrics     ParentPortalMetrics?
   notificationPrefs ParentNotificationPreference?
   consents          ParentConsent[]
 
-  // ✅ NEW: Payment relationships
-  paymentMethods   ParentPaymentMethod[]
-  paymentConsents  PaymentConsent[]
-  paymentReminders PaymentReminder[]
-
   @@index([nik])
   @@map("parents")
-  @@schema("tenant")
-}
-
-// 4. ✅ NEW: Parent payment methods
-model ParentPaymentMethod {
-  id       String @id @default(uuid()) @db.Uuid
-  parentId String @db.Uuid
-
-  methodType String // "bank_transfer", "credit_card", "e_wallet"
-  provider   String // "bca", "mandiri", "gopay", etc
-
-  // Tokenized data only - no actual card/account numbers
-  token       String? @unique
-  last4       String? // Last 4 digits
-  expiryMonth Int? // For cards
-  expiryYear  Int? // For cards
-
-  isDefault Boolean @default(false)
-  isActive  Boolean @default(true)
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  parent Parent @relation(fields: [parentId], references: [id])
-
-  @@index([parentId, isDefault])
-  @@map("parent_payment_methods")
-  @@schema("tenant")
-}
-
-// 5. ✅ NEW: Payment consent tracking
-model PaymentConsent {
-  id        String @id @default(uuid()) @db.Uuid
-  parentId  String @db.Uuid
-  studentId String @db.Uuid
-
-  consentType PaymentConsentType
-  isGranted   Boolean
-  grantedAt   DateTime?
-  grantedFrom String? // IP address
-
-  // Auto-pay settings
-  autoPayEnabled   Boolean  @default(false)
-  maxAutoPayAmount Decimal? @db.Decimal(12, 2)
-
-  expiresAt DateTime?
-  revokedAt DateTime?
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  parent Parent @relation(fields: [parentId], references: [id])
-
-  @@unique([parentId, studentId, consentType])
-  @@index([consentType])
-  @@map("payment_consents")
   @@schema("tenant")
 }
 
@@ -913,33 +646,39 @@ model ParentNotificationPreference {
   id       String @id @default(uuid()) @db.Uuid
   parentId String @unique @db.Uuid
 
-  // ✅ SIMPLIFIED: Use education level templates
-  useDefaultSettings Boolean @default(true)
+  // Academic notifications
+  gradeUpdates      Boolean @default(true)
+  attendanceAlerts  Boolean @default(true)
+  homeworkReminders Boolean @default(false)
+  assessmentResults Boolean @default(true)
+  reportCardReady   Boolean @default(true)
 
-  // Override specific categories if needed
-  overrides Json @default("{}")
-  /**
-   * {
-   * "academic": { "enabled": true, "channels": ["email", "push"] },
-   * "attendance": { "enabled": true, "channels": ["whatsapp"] },
-   * "payment": { "enabled": true, "channels": ["email", "sms"] },
-   * "dailyActivity": { "enabled": true, "channels": ["push"] }
-   * }
-   */
+  // Financial notifications
+  paymentReminders Boolean @default(true)
+  invoiceAlerts    Boolean @default(true)
+  overdueNotices   Boolean @default(true)
 
-  // Global preferences
+  // Activity notifications (KB/TK)
+  dailyActivities Boolean @default(true)
+  mealUpdates     Boolean @default(true)
+  napTime         Boolean @default(false)
+  photoUpdates    Boolean @default(true)
+
+  // Communication preferences
   emailEnabled    Boolean @default(true)
   smsEnabled      Boolean @default(false)
   whatsappEnabled Boolean @default(true)
   pushEnabled     Boolean @default(true)
 
   // Timing preferences
-  quietHoursStart      DateTime? @db.Time
-  quietHoursEnd        DateTime? @db.Time
-  weekendNotifications Boolean   @default(false)
+  quietHoursStart      DateTime? @db.Time // Don't send after this time
+  quietHoursEnd        DateTime? @db.Time // Resume sending after this time
+  weekendNotifications Boolean   @default(false) // Send on weekends
 
-  // ✅ NEW: Smart batching by education level
-  smartBatching Boolean @default(true) // Use education level defaults
+  // Batching preferences
+  immediateAlerts String[] // Types that should be sent immediately
+  digestFrequency DigestFrequency @default(DAILY)
+  digestTime      DateTime?       @db.Time // Preferred time for digest
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -950,129 +689,53 @@ model ParentNotificationPreference {
   @@schema("tenant")
 }
 
-// 8. ✅ NEW: Notification template improvements
-model NotificationTemplate {
-  id       String @id @default(uuid()) @db.Uuid
-  schoolId String @db.Uuid
-
-  category NotificationCategory
-  channel  NotificationChannel
-
-  // ✅ NEW: Education level specific
-  schoolLevel SchoolLevel? // null = all levels
-
-  // Template content
-  titleTemplate   Json // Multilingual template
-  contentTemplate Json // Multilingual template
-
-  // ✅ NEW: Rich content support
-  supportsImages  Boolean @default(false)
-  supportsButtons Boolean @default(false)
-
-  variables String[] // Available variables
-
-  isActive  Boolean @default(true)
-  isDefault Boolean @default(false)
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([schoolId, category, channel, schoolLevel])
-  @@index([category])
-  @@index([schoolLevel])
-  @@map("notification_templates")
-  @@schema("tenant")
-}
-
 model StudentDailyActivity {
   id        String   @id @default(uuid()) @db.Uuid
   studentId String   @db.Uuid
   date      DateTime @db.Date
 
   // Check-in/out times
-  arrivalTime    DateTime?
-  arrivalPhoto   String? // ✅ NEW: Photo URL
-  departureTime  DateTime?
-  departurePhoto String? // ✅ NEW: Photo URL
-  pickedUpBy     String?
+  arrivalTime   DateTime?
+  departureTime DateTime?
+  pickedUpBy    String? // Who picked up the child
 
   // Mood & behavior
-  moodOnArrival   String?
+  moodOnArrival   String? // Happy, Sad, Neutral, Excited, Tired
   moodAtDeparture String?
-  overallBehavior String?
+  overallBehavior String? // Excellent, Good, Fair, Needs Attention
 
   // Meals & Health
-  meals Json @default("[]") // ✅ ENHANCED: Detailed meal tracking
-  /**
-   * [
-   * {
-   * "type": "breakfast",
-   * "time": "08:30",
-   * "status": "all", // all, most, some, none
-   * "notes": "Loved the porridge",
-   * "photo": "https://..."
-   * }
-   * ]
-   */
-
-  waterIntake String?
+  breakfastStatus String? // All, Most, Some, None
+  lunchStatus     String?
+  snackStatus     String?
+  waterIntake     String? // Excellent, Good, Fair, Poor
 
   // Rest & hygiene
-  napTime        Json?
+  napTime        Json? // {start: "13:00", end: "14:30", quality: "good"}
   bathroomVisits Int   @default(0)
-  diaperChanges  Int   @default(0)
+  diaperChanges  Int   @default(0) // For very young children
 
   // Activities & Learning
-  activities Json[] // Enhanced with more structure
-  /**
-   * [
-   * {
-   * "time": "09:00",
-   * "activity": "Art & Craft",
-   * "participation": "active",
-   * "photos": ["url1", "url2"],
-   * "notes": "Made a beautiful painting"
-   * }
-   * ]
-   */
-
-  learningTopics String[]
-  specialMoments String?
+  activities     Json[] // Array of {time, activity, participation, notes}
+  learningTopics String[] // What was taught today
+  specialMoments String? // Notable events or achievements
 
   // Social interactions
-  playedWith  String[]
-  socialNotes String?
+  playedWith  String[] // Names of friends played with
+  socialNotes String? // Social behavior observations
 
   // Teacher observations
   teacherNotes   String?
   concernsRaised String?
 
   // Media attachments
-  photos Json[] // ✅ ENHANCED: Better structure
-  /**
-   * [
-   * {
-   * "url": "https://...",
-   * "thumbnail": "https://...",
-   * "caption": "Playing with blocks",
-   * "time": "10:30",
-   * "activity": "Free Play",
-   * "taggedStudents": ["studentId1", "studentId2"]
-   * }
-   * ]
-   */
-
-  videos Json[]
+  photos Json[] // {url, caption, time, activity}
+  videos Json[] // Short video clips
 
   // Health notes
-  temperature     Decimal? @db.Decimal(3, 1)
-  medicationGiven Json?
-  injuryReport    Json?
-
-  // ✅ NEW: Parent engagement tracking
-  viewedByParents String[] @default([]) // Parent IDs who viewed
-  parentComments  Json[]   @default([]) // Parent comments/reactions
+  temperature     Decimal? @db.Decimal(3, 1) // If checked
+  medicationGiven Json? // {medicine, time, dose}
+  injuryReport    Json? // {description, time, treatment}
 
   createdBy String   @db.Uuid
   createdAt DateTime @default(now())
@@ -1220,10 +883,9 @@ model AcademicYear {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  terms         AcademicTerm[]
-  enrollments   Enrollment[]
-  classes       Class[]
-  feeStructures FeeStructure[]
+  terms       AcademicTerm[]
+  enrollments Enrollment[]
+  classes     Class[]
 
   @@unique([schoolId, name])
   @@index([isActive])
@@ -1266,7 +928,6 @@ model Grade {
   curricula           GradeCurriculum[]
   enrollments         Enrollment[]
   previousEnrollments Enrollment[]       @relation("PreviousGrade") // ✅ For promotion tracking
-  feeStructures       FeeStructure[]
   GradeTranslation    GradeTranslation[]
 
   @@unique([schoolId, code])
@@ -1317,7 +978,7 @@ model Curriculum {
   isActive    Boolean        @default(true)
   metadata    Json           @default("{}")
   createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @default(now()) @updatedAt
+  updatedAt   DateTime       @updatedAt
 
   gradeCurricula GradeCurriculum[]
 
@@ -1353,7 +1014,7 @@ model Subject {
   isCore       Boolean         @default(true)
   metadata     Json            @default("{}")
   createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @default(now()) @updatedAt
+  updatedAt    DateTime        @updatedAt
 
   grade              Grade                @relation(fields: [gradeId], references: [id])
   teachers           SubjectTeacher[]
@@ -1411,14 +1072,11 @@ model Enrollment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  student       Student      @relation("StudentEnrollments", fields: [studentId], references: [id])
+  student       Student      @relation(fields: [studentId], references: [id])
   academicYear  AcademicYear @relation(fields: [academicYearId], references: [id])
   grade         Grade        @relation(fields: [gradeId], references: [id])
   class         Class        @relation(fields: [classId], references: [id])
   previousGrade Grade?       @relation("PreviousGrade", fields: [previousGradeId], references: [id])
-
-  // Reverse relation for current enrollment
-  currentForStudent Student? @relation("CurrentEnrollment")
 
   @@unique([studentId, academicYearId])
   @@index([status])
@@ -1673,69 +1331,23 @@ model Building {
   @@schema("tenant")
 }
 
-model FeeStructure {
-  id                String  @id @default(uuid()) @db.Uuid
-  schoolId          String  @db.Uuid
-  academicYearId    String  @db.Uuid
-  gradeId           String  @db.Uuid
-  installmentPlanId String? @db.Uuid // Link to installment plan
-
-  name        String
-  code        String
-  amount      Decimal      @db.Decimal(12, 2)
-  type        FeeType
-  frequency   FeeFrequency
-  dueDay      Int? // Day of month
-  isOptional  Boolean      @default(false)
-  description String?
-
-  // ✅ NEW: Parent-friendly display
-  displayName  Json @default("{}") // Multilingual name for parents
-  displayOrder Int  @default(0) // Order in parent portal
-
-  // ✅ ENHANCED: Flexible payment options
-  allowPartialPayment Boolean  @default(false)
-  minPaymentAmount    Decimal? @db.Decimal(12, 2)
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // ✅ Relations
-  academicYear    AcademicYear     @relation(fields: [academicYearId], references: [id])
-  grade           Grade            @relation(fields: [gradeId], references: [id])
-  installmentPlan InstallmentPlan? @relation(fields: [installmentPlanId], references: [id])
-  feeAssignments  FeeAssignment[]
-
-  @@unique([schoolId, academicYearId, gradeId, code])
-  @@index([type])
-  @@index([schoolId])
-  @@index([installmentPlanId])
-  @@map("fee_structures")
-  @@schema("tenant")
-}
-
-// ✅ ENHANCED: Complete InstallmentPlan model
+// Enhanced Financial Management with Installment Support
 model InstallmentPlan {
-  id           String  @id @default(uuid()) @db.Uuid
-  schoolId     String  @db.Uuid
-  name         String // "Uang Gedung 12x", "SPP Bulanan"
-  code         String  @unique
-  description  String?
-  installments Int // Number of installments
-
-  // ✅ RESTORED: Critical business fields
-  lateFeeRate     Decimal    @default(0) @db.Decimal(5, 4) // 0.0100 = 1% per month
+  id              String     @id @default(uuid()) @db.Uuid
+  schoolId        String     @db.Uuid
+  name            String // "Uang Gedung 12x", "SPP Bulanan"
+  code            String     @unique
+  description     String?
+  maxInstallments Int        @default(1) // 1 = tunai, >1 = cicilan
+  lateFeeRate     Decimal    @default(0) @db.Decimal(5, 4) // 0.0100 = 1%
   minDownPayment  Decimal    @default(0) @db.Decimal(5, 2) // Minimum DP %
   allowPartial    Boolean    @default(false) // Boleh bayar sebagian
   gracePeriodDays Int        @default(0) // Grace period telat
   status          BaseStatus @default(ACTIVE)
+  metadata        Json       @default("{}")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  school        School         @relation(fields: [schoolId], references: [id])
   feeStructures FeeStructure[]
 
   @@index([schoolId])
@@ -1744,44 +1356,59 @@ model InstallmentPlan {
   @@schema("tenant")
 }
 
+model FeeStructure {
+  id                String       @id @default(uuid()) @db.Uuid
+  schoolId          String       @db.Uuid
+  academicYearId    String       @db.Uuid
+  gradeId           String       @db.Uuid
+  installmentPlanId String?      @db.Uuid // Link to installment plan
+  name              String
+  code              String
+  amount            Decimal      @db.Decimal(12, 2)
+  type              FeeType
+  frequency         FeeFrequency
+  dueDay            Int? // Day of month
+  isOptional        Boolean      @default(false)
+  description       String?
+  metadata          Json         @default("{}")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  installmentPlan InstallmentPlan? @relation(fields: [installmentPlanId], references: [id])
+  feeAssignments  FeeAssignment[]
+
+  @@unique([schoolId, academicYearId, gradeId, code])
+  @@index([type])
+  @@index([schoolId])
+  @@map("fee_structures")
+  @@schema("tenant")
+}
+
 model FeeAssignment {
-  id             String @id @default(uuid()) @db.Uuid
-  feeStructureId String @db.Uuid
-  studentId      String @db.Uuid
-
-  totalAmount     Decimal @db.Decimal(12, 2) // Total yang harus dibayar
-  paidAmount      Decimal @default(0) @db.Decimal(12, 2) // Sudah dibayar
-  remainingAmount Decimal @db.Decimal(12, 2) // Sisa yang harus dibayar
-
-  // ✅ ENHANCED: Complete discount & fee tracking
-  discountAmount Decimal @default(0) @db.Decimal(12, 2)
-  discountReason String?
-  interestAmount Decimal @default(0) @db.Decimal(12, 2) // Bunga cicilan
-  lateFeeAmount  Decimal @default(0) @db.Decimal(12, 2) // Denda telat
-
-  // ✅ RESTORED: Installment management
-  installmentCount Int         @default(1) // Jumlah cicilan (1=tunai)
-  paidInstallments Int         @default(0) // Cicilan ke berapa sudah lunas
-  paymentType      PaymentType @default(FULL) // FULL atau INSTALLMENT
-
-  // ✅ ENHANCED: Due date management
-  status       FeeAssignmentStatus @default(PENDING)
-  dueDate      DateTime // Due date cicilan pertama/tunai
-  finalDueDate DateTime? // Due date cicilan terakhir
-
-  // ✅ NEW: Parent portal visibility
-  visibleToParent Boolean @default(true)
-  parentNotes     String? // Notes visible to parents
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String              @id @default(uuid()) @db.Uuid
+  feeStructureId   String              @db.Uuid
+  studentId        String              @db.Uuid
+  totalAmount      Decimal             @db.Decimal(12, 2) // Total yang harus dibayar
+  paidAmount       Decimal             @default(0) @db.Decimal(12, 2) // Sudah dibayar
+  remainingAmount  Decimal             @db.Decimal(12, 2) // Sisa yang harus dibayar
+  discount         Decimal             @default(0) @db.Decimal(12, 2)
+  discountReason   String?
+  interestAmount   Decimal             @default(0) @db.Decimal(12, 2) // Bunga cicilan
+  lateFeeAmount    Decimal             @default(0) @db.Decimal(12, 2) // Denda telat
+  installmentCount Int                 @default(1) // Jumlah cicilan (1=tunai)
+  paidInstallments Int                 @default(0) // Cicilan ke berapa sudah lunas
+  paymentType      PaymentType         @default(FULL) // FULL atau INSTALLMENT
+  status           FeeAssignmentStatus @default(PENDING)
+  dueDate          DateTime // Due date cicilan pertama/tunai
+  finalDueDate     DateTime? // Due date cicilan terakhir
+  metadata         Json                @default("{}")
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   feeStructure       FeeStructure        @relation(fields: [feeStructureId], references: [id])
-  student            Student             @relation(fields: [studentId], references: [id])
+  installmentDetails InstallmentDetail[]
   payments           Payment[]
   paymentReminders   PaymentReminder[]
-  installmentDetails InstallmentDetail[] // ✅ Add relation to installment details
 
   @@unique([feeStructureId, studentId])
   @@index([studentId])
@@ -1792,7 +1419,6 @@ model FeeAssignment {
   @@schema("tenant")
 }
 
-// ✅ RESTORED: InstallmentDetail model for flexible payment tracking
 model InstallmentDetail {
   id              String            @id @default(uuid()) @db.Uuid
   feeAssignmentId String            @db.Uuid
@@ -1804,14 +1430,9 @@ model InstallmentDetail {
   dueDate         DateTime // Jatuh tempo cicilan ini
   status          InstallmentStatus @default(PENDING)
   paidAt          DateTime? // Kapan lunas
-
-  // ✅ Parent portal features
-  reminderSent Boolean @default(false)
-  parentNotes  String? // Notes visible to parents
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  metadata        Json              @default("{}")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   feeAssignment FeeAssignment @relation(fields: [feeAssignmentId], references: [id])
   payments      Payment[]
@@ -1819,117 +1440,64 @@ model InstallmentDetail {
   @@unique([feeAssignmentId, installmentNo])
   @@index([status])
   @@index([dueDate])
-  @@index([feeAssignmentId])
   @@map("installment_details")
   @@schema("tenant")
 }
 
 model Payment {
-  id                  String  @id @default(uuid()) @db.Uuid
-  feeAssignmentId     String  @db.Uuid
-  installmentDetailId String? @db.Uuid // ✅ For installment payments, null for full payments
-  studentId           String  @db.Uuid
-
-  // ✅ ENHANCED: Payment breakdown for transparency
-  amount          Decimal @db.Decimal(12, 2) // Total payment amount
-  principalAmount Decimal @db.Decimal(12, 2) // Pokok pembayaran
-  interestAmount  Decimal @default(0) @db.Decimal(12, 2) // Bunga
-  lateFeeAmount   Decimal @default(0) @db.Decimal(12, 2) // Denda telat
-
-  paymentMethod  PaymentMethod
-  paymentGateway String?
-  transactionId  String        @unique
-
-  status PaymentStatus @default(PENDING)
-  paidAt DateTime?
-
-  // ✅ ENHANCED: Parent portal features
-  paidBy        String? @db.Uuid // Parent user ID
-  processedBy   String? @db.Uuid // Staff yang memproses (untuk offline payment)
-  receiptNumber String?
-  receiptUrl    String?
-
-  // ✅ ENHANCED: Automatic receipt and notification
-  receiptGenerated Boolean   @default(false)
-  receiptSentAt    DateTime?
-  parentNotified   Boolean   @default(false)
-  parentNotifiedAt DateTime?
-  parentViewedAt   DateTime? // Tracking engagement
-
-  // ✅ NEW: Enhanced payment details
-  paymentDate    DateTime? // Actual payment date (different from paidAt for processing time)
-  paymentChannel String? // "online", "offline", "mobile_app", "parent_portal"
-  currency       String    @default("IDR")
-  exchangeRate   Decimal?  @db.Decimal(10, 6) // For future multi-currency support
-
-  referenceNumber  String?
-  confirmationCode String? // Bank confirmation code
-  bankName         String? // Bank name for transfers
-  accountLast4     String? // Last 4 digits of account (for verification)
-  failureReason    String?
-
-  // ✅ NEW: Business validation
-  notes String? // Payment notes from staff or system
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  id                  String        @id @default(uuid()) @db.Uuid
+  feeAssignmentId     String        @db.Uuid
+  installmentDetailId String?       @db.Uuid // Untuk cicilan, null untuk tunai
+  studentId           String        @db.Uuid
+  transactionId       String        @unique
+  amount              Decimal       @db.Decimal(12, 2)
+  principalAmount     Decimal       @db.Decimal(12, 2) // Pokok
+  interestAmount      Decimal       @default(0) @db.Decimal(12, 2) // Bunga
+  lateFeeAmount       Decimal       @default(0) @db.Decimal(12, 2) // Denda
+  paymentMethod       PaymentMethod
+  paymentGateway      String?
+  status              PaymentStatus @default(PENDING)
+  paidAt              DateTime?
+  receiptNumber       String?
+  receiptUrl          String?
+  referenceNumber     String? // Bank reference, etc
+  metadata            Json          @default("{}")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   feeAssignment     FeeAssignment      @relation(fields: [feeAssignmentId], references: [id])
-  student           Student            @relation(fields: [studentId], references: [id])
   installmentDetail InstallmentDetail? @relation(fields: [installmentDetailId], references: [id])
 
   @@index([studentId])
   @@index([status])
   @@index([paymentMethod])
   @@index([paidAt])
-  @@index([paidBy])
-  @@index([installmentDetailId])
-  @@index([paymentDate]) // ✅ NEW: For payment date queries
-  @@index([receiptNumber]) // ✅ NEW: For receipt lookup
-  @@index([paymentChannel]) // ✅ NEW: For channel analytics
-  @@index([parentNotified]) // ✅ NEW: For notification tracking
   @@map("payments")
   @@schema("tenant")
 }
 
 model PaymentReminder {
-  id              String  @id @default(uuid()) @db.Uuid
-  feeAssignmentId String  @db.Uuid
-  studentId       String  @db.Uuid
-  parentId        String? @db.Uuid // ✅ NEW: Track which parent
-
-  reminderType  ReminderType
-  daysBeforeDue Int?
-  daysAfterDue  Int?
-
-  status  ReminderStatus        @default(PENDING)
-  sentAt  DateTime?
-  sentVia NotificationChannel[] // ✅ Multiple channels
-
-  // ✅ NEW: Engagement tracking
-  openedAt    DateTime?
-  clickedAt   DateTime?
-  actionTaken String? // "viewed", "paid", "contacted_school"
-
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
+  id              String             @id @default(uuid()) @db.Uuid
+  feeAssignmentId String             @db.Uuid
+  installmentId   String?            @db.Uuid
+  studentId       String             @db.Uuid
+  reminderType    ReminderType // BEFORE_DUE, OVERDUE, FINAL_NOTICE
+  daysBeforeDue   Int? // Untuk BEFORE_DUE
+  daysAfterDue    Int? // Untuk OVERDUE
+  status          ReminderStatus     @default(PENDING)
+  sentAt          DateTime?
+  sentBy          NotificationMethod // EMAIL, SMS, WHATSAPP, PUSH
+  metadata        Json               @default("{}")
+  createdAt       DateTime           @default(now())
 
   feeAssignment FeeAssignment @relation(fields: [feeAssignmentId], references: [id])
-  student       Student       @relation(fields: [studentId], references: [id])
-  parent        Parent?       @relation(fields: [parentId], references: [id])
 
   @@index([studentId])
   @@index([status])
   @@index([reminderType])
-  @@index([parentId])
   @@map("payment_reminders")
   @@schema("tenant")
 }
-
-// ✅ REMOVED: ParentPaymentSummary - data dapat dikalkulasi real-time
-// Semua data summary bisa dihitung dari FeeAssignment, Payment, dan InstallmentDetail
-// yang sudah ada dengan performance yang baik menggunakan proper indexing
 
 // Report Card System
 model ReportCardTemplate {
@@ -1971,7 +1539,7 @@ model ReportCard {
   publishedAt DateTime?
   metadata    Json             @default("{}")
   createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @default(now()) @updatedAt
+  updatedAt   DateTime         @updatedAt
 
   template ReportCardTemplate @relation(fields: [templateId], references: [id])
   term     AcademicTerm       @relation(fields: [termId], references: [id])
@@ -2135,7 +1703,7 @@ model Integration {
   lastDapodikSync DateTime?
   metadata        Json              @default("{}")
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @default(now()) @updatedAt
+  updatedAt       DateTime          @updatedAt
 
   syncLogs SyncLog[]
 
@@ -2186,23 +1754,13 @@ model Session {
 }
 
 model AuditLog {
-  id       String  @id @default(uuid()) @db.Uuid
-  userId   String? @db.Uuid
-  action   String
-  entity   String
-  entityId String?
-
-  // ✅ NEW: Categorized actions
-  category AuditCategory @default(GENERAL)
-
-  oldData Json?
-  newData Json?
-
-  // ✅ NEW: Additional context
-  schoolId  String?  @db.Uuid
-  studentId String?  @db.Uuid
-  amount    Decimal? @db.Decimal(12, 2) // For financial transactions
-
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @db.Uuid
+  action    String
+  entity    String
+  entityId  String?
+  oldData   Json?
+  newData   Json?
   ipAddress String?
   userAgent String?
   metadata  Json?
@@ -2214,67 +1772,28 @@ model AuditLog {
   @@index([entity, entityId])
   @@index([action])
   @@index([createdAt])
-  @@index([category])
-  @@index([schoolId])
   @@map("audit_logs")
   @@schema("tenant")
 }
 
-// 8. ✅ NEW: Analytics tables for billing insights
-model StudentBillingAnalytics {
-  id        String @id @default(uuid()) @db.Uuid
-  studentId String @unique @db.Uuid
-
-  // Payment behavior
-  totalBilled    Decimal @default(0) @db.Decimal(12, 2)
-  totalPaid      Decimal @default(0) @db.Decimal(12, 2)
-  onTimePayments Int     @default(0)
-  latePayments   Int     @default(0)
-
-  // Current status
-  hasOutstanding Boolean @default(false)
-  daysOverdue    Int     @default(0)
-
-  // Risk scoring
-  paymentRiskScore Float @default(0) // 0-100, higher = more risky
-
-  lastCalculated DateTime @default(now())
-
-  @@index([hasOutstanding])
-  @@index([paymentRiskScore])
-  @@map("student_billing_analytics")
-  @@schema("tenant")
-}
-
 model EmailTemplate {
-  id String @id @default(uuid()) @db.Uuid
-
-  schoolId String            @db.Uuid
-  type     EmailTemplateType
-  name     String
-
-  // ✅ ENHANCED: Better multilingual support
-  subject Json // {"id": "Tagihan Pembayaran", "en": "Payment Invoice"}
-  body    Json // HTML template with {{variables}}
-
+  id        String            @id @default(uuid()) @db.Uuid
+  schoolId  String            @db.Uuid
+  type      EmailTemplateType
+  name      String // Nama template untuk admin
+  subject   Json // Multilingual subject
+  body      Json // HTML template multilingual
   variables String[] // Available merge variables
-
-  // ✅ NEW: Template categories for better organization
-  category TemplateCategory @default(GENERAL)
-
-  isActive  Boolean @default(true)
-  isDefault Boolean @default(false)
+  isActive  Boolean           @default(true)
+  isDefault Boolean           @default(false) // Use platform default
 
   // White label support
   useSchoolBranding Boolean @default(true)
-  customHeader      String?
-  customFooter      String?
-  customCSS         String?
+  customHeader      String? // Custom HTML header
+  customFooter      String? // Custom HTML footer
+  customCSS         String? // Custom styling
 
-  // ✅ NEW: Parent-specific options
-  parentFriendly   Boolean @default(false) // Use simpler language
-  includePayButton Boolean @default(false) // For payment emails
-
+  // Sending configuration
   priority  Priority @default(NORMAL)
   bccEmails String[] @default([])
   replyTo   String?
@@ -2287,7 +1806,6 @@ model EmailTemplate {
   @@unique([schoolId, type])
   @@index([isActive])
   @@index([type])
-  @@index([category])
   @@map("email_templates")
   @@schema("tenant")
 }
@@ -2403,43 +1921,16 @@ enum ConsentType {
   @@schema("tenant")
 }
 
-enum PaymentConsentType {
-  ONLINE_PAYMENT // Consent for online payments
-  AUTO_PAY // Consent for automatic payments
-  PAYMENT_REMINDER // Consent for payment reminders
-
-  @@schema("tenant")
-}
-
-// ✅ UPDATE: Enhanced notification categories
 enum NotificationCategory {
-  // Academic
   ATTENDANCE
   ACADEMIC_PERFORMANCE
   ACADEMIC_SUBMISSION
-  HOMEWORK
-  ASSESSMENT_RESULT
-
-  // Behavior & Health
   BEHAVIOR_DISCIPLINE
   HEALTH_SAFETY
-  DAILY_ACTIVITY // ✅ NEW: For KB/TK
-  MEAL_UPDATE // ✅ NEW: For KB/TK
-
-  // Financial
-  PAYMENT_DUE // ✅ NEW
-  PAYMENT_RECEIVED // ✅ NEW
-  PAYMENT_OVERDUE // ✅ NEW
-  INVOICE_READY // ✅ NEW
-
-  // Communication
-  TEACHER_MESSAGE
-  SCHOOL_ANNOUNCEMENT
-  EVENT_INVITATION
-
-  // System
-  SYSTEM_UPDATE
-  ACCOUNT_ACTIVITY
+  PAYMENT_FINANCE
+  ACTIVITY_UPDATE
+  COMMUNICATION
+  EVENT_ANNOUNCEMENT
 
   @@schema("tenant")
 }
@@ -2463,29 +1954,7 @@ enum NotificationTiming {
   @@schema("tenant")
 }
 
-enum TemplateCategory {
-  GENERAL
-  ACADEMIC
-  FINANCIAL
-  ATTENDANCE
-  BEHAVIORAL
-  ADMINISTRATIVE
-
-  @@schema("tenant")
-}
-
-enum AuditCategory {
-  GENERAL
-  AUTHENTICATION
-  ACADEMIC
-  FINANCIAL
-  ADMINISTRATIVE
-  SECURITY
-
-  @@schema("tenant")
-}
-
-// ✅ RESTORED: Payment Type enum
+// New Payment-Related Enums
 enum PaymentType {
   FULL // Bayar tunai/sekaligus
   INSTALLMENT // Bayar cicilan
@@ -2493,13 +1962,22 @@ enum PaymentType {
   @@schema("tenant")
 }
 
-// ✅ SIMPLIFIED: FeeAssignmentStatus
 enum FeeAssignmentStatus {
-  PENDING // Not yet paid
-  PARTIAL // Partially paid
-  PAID // Fully paid
-  OVERDUE // Past due date
-  WAIVED // Fee waived
+  PENDING // Belum ada pembayaran
+  PARTIAL // Sebagian sudah dibayar
+  PAID // Lunas
+  OVERDUE // Terlambat
+  CANCELLED // Dibatalkan
+
+  @@schema("tenant")
+}
+
+enum InstallmentStatus {
+  PENDING // Belum dibayar
+  PARTIAL // Sebagian dibayar
+  PAID // Lunas
+  OVERDUE // Terlambat
+  WAIVED // Dibebaskan
 
   @@schema("tenant")
 }
@@ -2516,6 +1994,15 @@ enum ReminderStatus {
   PENDING // Belum dikirim
   SENT // Sudah dikirim
   FAILED // Gagal kirim
+
+  @@schema("tenant")
+}
+
+enum NotificationMethod {
+  EMAIL
+  SMS
+  WHATSAPP
+  PUSH_NOTIFICATION
 
   @@schema("tenant")
 }
@@ -2602,6 +2089,9 @@ enum SubscriptionStatus {
 
 enum BillingPeriod {
   MONTHLY
+  QUARTERLY
+  SEMESTER
+  YEARLY
 
   @@schema("public")
 }
@@ -2880,61 +2370,14 @@ enum PaymentMethod {
   @@schema("tenant")
 }
 
-enum LineItemType {
-  STUDENT_LICENSE // Per-student fee
-  VOLUME_DISCOUNT // Discount for volume
-  LANGUAGE_ADDON // Additional language fee
-  WHITE_LABEL_FEE // White label monthly fee
-  CUSTOM_DOMAIN // Custom domain fee
-  SETUP_FEE // One-time setup
-  OTHER_FEE // Other fees
-  TAX // Tax line item
-
-  @@schema("public")
-}
-
-enum AlertType {
-  PAYMENT_DUE // Payment due soon
-  PAYMENT_OVERDUE // Payment is overdue
-  INVOICE_GENERATED // New invoice available
-  PAYMENT_RECEIVED // Payment confirmation
-  SUBSCRIPTION_EXPIRY // Subscription expiring
-  PRICE_CHANGE // Price change notification
-  STUDENT_LIMIT // Approaching student limit
-
-  @@schema("public")
-}
-
-enum AlertSeverity {
-  INFO
-  WARNING
-  ERROR
-  CRITICAL
-
-  @@schema("public")
-}
-
-enum PriceChangeType {
-  RATE_CHANGE // Per-student rate change
-  DISCOUNT_ADDED // New discount applied
-  DISCOUNT_REMOVED // Discount removed
-  PLAN_UPGRADE // Plan upgrade
-  PLAN_DOWNGRADE // Plan downgrade
-  CUSTOM_PRICING // Custom pricing applied
-
-  @@schema("public")
-}
-
-// ✅ UPDATE: PaymentStatus (moved to public schema for platform billing)
 enum PaymentStatus {
   PENDING
   PROCESSING
   SUCCESS
   FAILED
   REFUNDED
-  CANCELLED
 
-  @@schema("public")
+  @@schema("tenant")
 }
 
 enum ReportCardType {
@@ -3061,138 +2504,126 @@ enum Language {
 
 // Email Template Types
 enum EmailTemplateType {
-  // Authentication & Account
-  WELCOME
-  EMAIL_VERIFICATION
-  PASSWORD_RESET
-  PASSWORD_CHANGED
-  TWO_FACTOR_CODE
-  ACCOUNT_LOCKED
-  ACCOUNT_REACTIVATED
+  // === AUTHENTICATION & ACCOUNT ===
+  WELCOME // Welcome email untuk user baru
+  EMAIL_VERIFICATION // Verifikasi email
+  PASSWORD_RESET // Reset password
+  PASSWORD_CHANGED // Notifikasi password berubah
+  TWO_FACTOR_CODE // Kode 2FA
+  ACCOUNT_LOCKED // Akun terkunci
+  ACCOUNT_REACTIVATED // Akun diaktifkan kembali
 
-  // Enrollment & Admission
-  ENROLLMENT_CONFIRMATION
-  ENROLLMENT_ACCEPTED
-  ENROLLMENT_REJECTED
-  ENROLLMENT_WAITLIST
-  CLASS_ASSIGNMENT
-  GRADE_PROMOTION
-  GRADE_RETENTION
-  TRANSFER_CONFIRMATION
+  // === ENROLLMENT & ADMISSION ===
+  ENROLLMENT_CONFIRMATION // Konfirmasi pendaftaran siswa
+  ENROLLMENT_ACCEPTED // Diterima di sekolah
+  ENROLLMENT_REJECTED // Ditolak pendaftaran
+  ENROLLMENT_WAITLIST // Masuk waiting list
+  CLASS_ASSIGNMENT // Penempatan kelas
+  GRADE_PROMOTION // Naik kelas
+  GRADE_RETENTION // Tinggal kelas
+  TRANSFER_CONFIRMATION // Konfirmasi pindah sekolah
 
-  // Academic Notifications
-  REPORT_CARD_READY
-  ASSESSMENT_PUBLISHED
-  ASSESSMENT_REMINDER
-  ASSESSMENT_RESULT
-  HOMEWORK_ASSIGNED
-  HOMEWORK_REMINDER
-  ACADEMIC_WARNING
-  ACHIEVEMENT_NOTIFICATION
+  // === ACADEMIC NOTIFICATIONS ===
+  REPORT_CARD_READY // Rapor siap diunduh
+  ASSESSMENT_PUBLISHED // Ujian/tugas dipublish
+  ASSESSMENT_REMINDER // Pengingat ujian/tugas
+  ASSESSMENT_RESULT // Hasil ujian/nilai
+  HOMEWORK_ASSIGNED // PR baru
+  HOMEWORK_REMINDER // Pengingat PR
+  ACADEMIC_WARNING // Peringatan akademik
+  ACHIEVEMENT_NOTIFICATION // Notifikasi prestasi
 
-  // Attendance
-  ATTENDANCE_ABSENT
-  ATTENDANCE_LATE
-  ATTENDANCE_SUMMARY_WEEKLY
-  ATTENDANCE_SUMMARY_MONTHLY
-  ATTENDANCE_WARNING
+  // === ATTENDANCE ===
+  ATTENDANCE_ABSENT // Siswa tidak hadir
+  ATTENDANCE_LATE // Siswa terlambat
+  ATTENDANCE_SUMMARY_WEEKLY // Ringkasan mingguan
+  ATTENDANCE_SUMMARY_MONTHLY // Ringkasan bulanan
+  ATTENDANCE_WARNING // Peringatan absensi
 
-  // Payment & Billing
-  INVOICE_CREATED
-  PAYMENT_REMINDER
-  PAYMENT_OVERDUE
-  PAYMENT_RECEIVED
-  PAYMENT_RECEIPT
-  INSTALLMENT_REMINDER
-  INSTALLMENT_SCHEDULE
-  PAYMENT_FAILED
-  REFUND_PROCESSED
+  // === PAYMENT & BILLING ===
+  INVOICE_CREATED // Invoice baru
+  PAYMENT_REMINDER // Pengingat pembayaran
+  PAYMENT_OVERDUE // Pembayaran terlambat
+  PAYMENT_RECEIVED // Konfirmasi pembayaran
+  PAYMENT_RECEIPT // Kwitansi pembayaran
+  INSTALLMENT_REMINDER // Pengingat cicilan
+  INSTALLMENT_SCHEDULE // Jadwal cicilan
+  PAYMENT_FAILED // Pembayaran gagal
+  REFUND_PROCESSED // Refund diproses
 
-  // Communication
-  ANNOUNCEMENT_GENERAL
-  ANNOUNCEMENT_URGENT
-  EVENT_INVITATION
-  EVENT_REMINDER
-  MEETING_INVITATION
-  MEETING_REMINDER
-  MEETING_CANCELLATION
-  MESSAGE_NOTIFICATION
+  // === COMMUNICATION ===
+  ANNOUNCEMENT_GENERAL // Pengumuman umum
+  ANNOUNCEMENT_URGENT // Pengumuman penting/darurat
+  EVENT_INVITATION // Undangan acara
+  EVENT_REMINDER // Pengingat acara
+  MEETING_INVITATION // Undangan rapat
+  MEETING_REMINDER // Pengingat rapat
+  MEETING_CANCELLATION // Pembatalan rapat
+  MESSAGE_NOTIFICATION // Notifikasi pesan baru
 
-  // Discipline & Behavior
-  DISCIPLINE_WARNING
-  DISCIPLINE_ACTION
-  BEHAVIOR_REPORT
-  COUNSELING_APPOINTMENT
-  PARENT_CONFERENCE_REQUEST
+  // === DISCIPLINE & BEHAVIOR ===
+  DISCIPLINE_WARNING // Peringatan disiplin
+  DISCIPLINE_ACTION // Tindakan disiplin
+  BEHAVIOR_REPORT // Laporan perilaku
+  COUNSELING_APPOINTMENT // Jadwal konseling
+  PARENT_CONFERENCE_REQUEST // Permintaan pertemuan orangtua
 
-  // Leave & Permission
-  LEAVE_REQUEST_SUBMITTED
-  LEAVE_REQUEST_APPROVED
-  LEAVE_REQUEST_REJECTED
-  STUDENT_LEAVE_NOTIFICATION
+  // === LEAVE & PERMISSION ===
+  LEAVE_REQUEST_SUBMITTED // Pengajuan cuti (guru/staff)
+  LEAVE_REQUEST_APPROVED // Cuti disetujui
+  LEAVE_REQUEST_REJECTED // Cuti ditolak
+  STUDENT_LEAVE_NOTIFICATION // Notifikasi izin siswa
 
-  // Schedule & Timetable
-  SCHEDULE_CHANGE
-  SCHEDULE_PUBLISHED
-  CLASS_CANCELLATION
-  SUBSTITUTE_TEACHER
+  // === SCHEDULE & TIMETABLE ===
+  SCHEDULE_CHANGE // Perubahan jadwal
+  SCHEDULE_PUBLISHED // Jadwal baru dipublish
+  CLASS_CANCELLATION // Pembatalan kelas
+  SUBSTITUTE_TEACHER // Info guru pengganti
 
-  // White Label Specific
-  DOMAIN_VERIFICATION
-  DOMAIN_VERIFIED
-  SSL_EXPIRY_WARNING
-  WHITE_LABEL_ACTIVATED
-  WHITE_LABEL_SUSPENDED
+  // === WHITE LABEL SPECIFIC ===
+  DOMAIN_VERIFICATION // Verifikasi domain custom
+  DOMAIN_VERIFIED // Domain terverifikasi
+  SSL_EXPIRY_WARNING // Peringatan SSL akan expired
+  WHITE_LABEL_ACTIVATED // White label diaktifkan
+  WHITE_LABEL_SUSPENDED // White label disuspend
 
-  // Parent Portal Specific
-  DAILY_ACTIVITY_SUMMARY
-  WEEKLY_PROGRESS_REPORT
-  PHOTO_ALBUM_SHARED
-  MEAL_UPDATE
-  NAP_TIME_UPDATE
-  HEALTH_CHECK_RESULT
-  MILESTONE_ACHIEVED
+  // === PARENT PORTAL SPECIFIC ===
+  DAILY_ACTIVITY_SUMMARY // Rangkuman aktivitas harian (KB/TK)
+  WEEKLY_PROGRESS_REPORT // Laporan perkembangan mingguan
+  PHOTO_ALBUM_SHARED // Album foto dibagikan
+  MEAL_UPDATE // Update makan anak
+  NAP_TIME_UPDATE // Update tidur siang
+  HEALTH_CHECK_RESULT // Hasil pemeriksaan kesehatan
+  MILESTONE_ACHIEVED // Pencapaian milestone perkembangan
 
-  // System & Maintenance
-  SYSTEM_MAINTENANCE
-  SYSTEM_UPDATE
-  DATA_EXPORT_READY
-  BACKUP_COMPLETED
-  API_LIMIT_WARNING
-  SUBSCRIPTION_EXPIRING
-  SUBSCRIPTION_RENEWED
+  // === SYSTEM & MAINTENANCE ===
+  SYSTEM_MAINTENANCE // Notifikasi maintenance
+  SYSTEM_UPDATE // Update sistem
+  DATA_EXPORT_READY // Export data selesai
+  BACKUP_COMPLETED // Backup selesai
+  API_LIMIT_WARNING // Peringatan API limit
+  SUBSCRIPTION_EXPIRING // Subscription akan habis
+  SUBSCRIPTION_RENEWED // Subscription diperpanjang
 
-  // Custom Templates
-  CUSTOM_TEMPLATE_1
-  CUSTOM_TEMPLATE_2
-  CUSTOM_TEMPLATE_3
-  CUSTOM_TEMPLATE_4
-  CUSTOM_TEMPLATE_5
+  // === CUSTOM TEMPLATES ===
+  CUSTOM_TEMPLATE_1 // Template custom 1
+  CUSTOM_TEMPLATE_2 // Template custom 2
+  CUSTOM_TEMPLATE_3 // Template custom 3
+  CUSTOM_TEMPLATE_4 // Template custom 4
+  CUSTOM_TEMPLATE_5 // Template custom 5
 
   @@schema("tenant")
 }
 
 enum EmailStatus {
-  PENDING
-  QUEUED
-  SENT
-  DELIVERED
-  OPENED
-  CLICKED
-  BOUNCED
-  FAILED
+  PENDING // Menunggu dikirim
+  QUEUED // Dalam antrian
+  SENT // Terkirim
+  DELIVERED // Diterima
+  OPENED // Dibuka
+  CLICKED // Link diklik
+  BOUNCED // Gagal terkirim
+  FAILED // Error
 
   @@schema("tenant")
 }
-
-enum InstallmentStatus {
-  PENDING // Belum dibayar
-  PARTIAL // Sebagian dibayar
-  PAID // Lunas
-  OVERDUE // Terlambat
-  WAIVED // Dibebaskan
-
-  @@schema("tenant")
-}
-
-// ==================== END OF SCHEMA ====================
