@@ -4045,6 +4045,48 @@ model InstallmentPlan {
   @@schema("public")
 }
 
+model StudentLicense {
+  id        String @id @default(uuid())
+  tenantId  String
+  studentId String @unique
+
+  activatedAt   DateTime
+  deactivatedAt DateTime?
+  billedUntil   DateTime
+
+  // For proration
+  daysActive  Int
+  monthlyRate Decimal
+
+  @@index([tenantId, activatedAt])
+  @@map("student_licenses")
+  @@schema("public")
+}
+
+model BillingMetrics {
+  id       String   @id @default(uuid())
+  tenantId String
+  month    DateTime
+
+  // Student counts
+  startingStudents Int
+  endingStudents   Int
+  peakStudents     Int
+  averageStudents  Float
+
+  // Churn metrics
+  studentsAdded   Int
+  studentsRemoved Int
+
+  // Billing
+  billableStudents Int
+  proratedDays     Json // Per-student proration
+
+  @@unique([tenantId, month])
+  @@map("billing_metrics")
+  @@schema("public")
+}
+
 // ==================== TENANT LEVEL (tenant schema) ====================
 // Each school has its own tenant schema
 
