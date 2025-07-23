@@ -536,33 +536,305 @@ model SyncLog {
 }
 
 // Security & Audit
+// 🏢 ENTERPRISE-GRADE SESSION MANAGEMENT
 model Session {
-  id     String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  token  String @unique
+  id        String @id @default(cuid())
+  userId    String @db.Uuid
+  sessionId String @unique @default(cuid()) // Public session identifier
 
-  // Session info
-  ipAddress  String?
-  userAgent  String?
-  deviceId   String?
-  deviceType String? // mobile, desktop, tablet
+  // 🔐 AUTHENTICATION TOKENS
+  accessToken  String? @unique
+  refreshToken String? @unique
+  tokenFamily  String // For token rotation tracking
 
-  // Activity
-  lastActivity DateTime
+  // 📱 DEVICE INTELLIGENCE
+  deviceFingerprint String // Unique device identifier hash
+  deviceName        String? // User-friendly device name
+  deviceType        DeviceType       @default(UNKNOWN)
+  deviceTrustLevel  DeviceTrustLevel @default(UNKNOWN)
 
-  // Expiry
-  expiresAt DateTime
+  // 🌐 NETWORK & LOCATION
+  ipAddress      String
+  ipCountry      String?
+  ipCity         String?
+  ipOrganization String? // ISP/Organization
+  location       String? // Formatted location string
+  coordinates    Json? // { lat: number, lng: number }
 
-  // Metadata
-  metadata  Json?
-  createdAt DateTime @default(now())
+  // 🕐 TEMPORAL TRACKING  
+  createdAt      DateTime  @default(now())
+  lastActivityAt DateTime  @default(now())
+  expiresAt      DateTime
+  terminatedAt   DateTime?
 
-  user User @relation(fields: [userId], references: [id])
+  // 🚨 SECURITY & RISK
+  riskScore      Int       @default(0) // 0-100 risk assessment
+  riskLevel      RiskLevel @default(LOW)
+  riskFactors    Json? // Array of risk factor objects
+  securityEvents Json? // Array of security events for this session
 
+  // 📊 SESSION STATE
+  status            SessionStatus @default(ACTIVE)
+  terminationReason String?
+  isActive          Boolean       @default(true)
+
+  // 🔄 SESSION POLICY
+  policyId    String? // References SessionPolicy
+  maxIdleTime Int? // Minutes before idle timeout
+  requiresMFA Boolean @default(false)
+
+  // 📝 COMPREHENSIVE METADATA
+  userAgent      String?
+  browserName    String?
+  browserVersion String?
+  osName         String?
+  osVersion      String?
+  isMobile       Boolean @default(false)
+  isBot          Boolean @default(false)
+  timezone       String?
+  language       String?
+
+  // 🔗 RELATIONSHIPS
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionPolicy   SessionPolicy?   @relation(fields: [policyId], references: [id])
+  auditLogs       AuditLog[]
+  securityAlerts  SecurityAlert[]
+  deviceTrusts    TrustedDevice[]
+  riskAssessments RiskAssessment[]
+
+  // 📈 PERFORMANCE INDEXES
   @@index([userId])
+  @@index([sessionId])
+  @@index([accessToken])
+  @@index([refreshToken])
+  @@index([deviceFingerprint])
+  @@index([ipAddress])
+  @@index([status, isActive])
   @@index([expiresAt])
-  @@index([token])
+  @@index([lastActivityAt])
+  @@index([riskScore])
+  @@index([createdAt])
+  @@index([terminatedAt])
   @@map("sessions")
+  @@schema("tenant")
+}
+
+// === DEVICE TRUST MANAGEMENT ===
+model TrustedDevice {
+  id                String     @id @default(cuid())
+  userId            String     @db.Uuid
+  deviceFingerprint String // Hash of device characteristics
+  deviceName        String?
+  deviceType        DeviceType @default(UNKNOWN)
+
+  // 🔒 TRUST LEVEL
+  trustLevel     DeviceTrustLevel @default(PENDING)
+  trustGrantedAt DateTime?
+  trustGrantedBy String?          @db.Uuid // Admin who granted trust
+  trustRevokedAt DateTime?
+  trustRevokedBy String?          @db.Uuid
+
+  // 📊 DEVICE INTELLIGENCE
+  fingerprintData Json // Detailed device characteristics
+  firstSeenAt     DateTime @default(now())
+  lastSeenAt      DateTime @default(now())
+  seenCount       Int      @default(1)
+
+  // 🚨 SECURITY TRACKING
+  riskScore         Int     @default(0)
+  securityIncidents Int     @default(0)
+  isActive          Boolean @default(true)
+
+  // 🔗 RELATIONSHIPS  
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@unique([userId, deviceFingerprint])
+  @@index([userId])
+  @@index([deviceFingerprint])
+  @@index([trustLevel])
+  @@index([lastSeenAt])
+  @@map("trusted_devices")
+  @@schema("tenant")
+}
+
+// === SESSION POLICIES (ROLE-BASED) ===
+model SessionPolicy {
+  id String @id @default(cuid())
+
+  // 🎭 POLICY IDENTIFICATION
+  name        String   @unique // e.g., "STUDENT_POLICY", "ADMIN_POLICY"
+  description String?
+  userRole    UserRole // STUDENT, INSTRUCTOR, ADMIN, SUPER_ADMIN
+
+  // ⏰ SESSION LIMITS
+  maxConcurrentSessions  Int @default(3)
+  sessionTimeoutMinutes  Int @default(480) // 8 hours default
+  idleTimeoutMinutes     Int @default(60) // 1 hour idle
+  absoluteTimeoutMinutes Int @default(720) // 12 hours max
+
+  // 📱 DEVICE POLICIES
+  deviceTrustRequired        DeviceTrustLevel @default(UNKNOWN)
+  allowUnknownDevices        Boolean          @default(true)
+  deviceRegistrationRequired Boolean          @default(false)
+
+  // 🌐 LOCATION POLICIES
+  locationPolicy   LocationPolicy @default(GLOBAL)
+  allowedCountries Json? // Array of ISO country codes
+  blockedCountries Json? // Array of blocked country codes
+
+  // 🔐 SECURITY REQUIREMENTS
+  requireMFA           Boolean @default(false)
+  requireHardwareToken Boolean @default(false)
+  riskThreshold        Int     @default(70) // Block if risk > threshold
+
+  // 🚨 BEHAVIOR POLICIES
+  maxFailedAttempts      Int     @default(5)
+  lockoutDurationMinutes Int     @default(15)
+  allowConcurrentLogins  Boolean @default(true)
+  forceUniqueSession     Boolean @default(false) // Single session only
+
+  // 📊 MONITORING
+  enableRiskAssessment   Boolean @default(true)
+  enableDeviceTracking   Boolean @default(true)
+  enableLocationTracking Boolean @default(true)
+  enableBehaviorAnalysis Boolean @default(true)
+
+  // 🔄 LIFECYCLE
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 🔗 RELATIONSHIPS
+  sessions Session[]
+
+  @@index([userRole])
+  @@index([isActive])
+  @@map("session_policies")
+  @@schema("tenant")
+}
+
+// === SECURITY ALERTS ===
+model SecurityAlert {
+  id String @id @default(cuid())
+
+  // 🎯 ALERT IDENTIFICATION
+  userId    String            @db.Uuid
+  sessionId String? // References Session.sessionId
+  alertType SecurityAlertType
+  severity  AlertSeverity
+
+  // 📝 ALERT DETAILS
+  title       String
+  description String
+  riskScore   Int    @default(0)
+
+  // 🚨 ALERT STATUS
+  status          AlertStatus @default(ACTIVE)
+  resolvedAt      DateTime?
+  resolvedBy      String?     @db.Uuid
+  resolutionNotes String?
+
+  // 📊 ALERT METADATA
+  metadata Json? // Additional alert data
+  evidence Json? // Supporting evidence
+
+  // ⏰ TEMPORAL
+  triggeredAt DateTime @default(now())
+
+  // 🔗 RELATIONSHIPS
+  user    User     @relation(fields: [userId], references: [id])
+  session Session? @relation(fields: [sessionId], references: [sessionId])
+
+  @@index([userId, triggeredAt])
+  @@index([sessionId])
+  @@index([alertType])
+  @@index([severity])
+  @@index([status])
+  @@map("security_alerts")
+  @@schema("tenant")
+}
+
+// === LOGIN ATTEMPTS TRACKING ===
+model LoginAttempt {
+  id String @id @default(cuid())
+
+  // 🎯 ATTEMPT IDENTIFICATION
+  email  String
+  userId String? @db.Uuid // NULL if user not found
+
+  // 📊 ATTEMPT RESULT
+  result        LoginResult
+  resultMessage String?
+
+  // 🌐 CONTEXT
+  ipAddress         String
+  userAgent         String?
+  deviceFingerprint String?
+  location          String?
+
+  // 🚨 SECURITY ANALYSIS
+  riskScore   Int     @default(0)
+  blocked     Boolean @default(false)
+  blockReason String?
+
+  // ⏰ TEMPORAL
+  attemptedAt DateTime @default(now())
+
+  // 📝 METADATA
+  metadata Json?
+
+  // 🔗 RELATIONSHIPS
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([email, attemptedAt])
+  @@index([userId, attemptedAt])
+  @@index([ipAddress, attemptedAt])
+  @@index([result])
+  @@index([riskScore])
+  @@index([attemptedAt])
+  @@map("login_attempts")
+  @@schema("tenant")
+}
+
+// === IP REPUTATION ===
+model IpReputation {
+  id        String @id @default(cuid())
+  ipAddress String @unique
+
+  // 🎯 REPUTATION SCORING
+  reputationScore Int             @default(50) // 0-100
+  reputationLevel ReputationLevel @default(NEUTRAL)
+
+  // 🌐 GEOGRAPHIC INFO
+  country      String?
+  city         String?
+  region       String?
+  organization String?
+  isp          String?
+
+  // 🚨 THREAT INDICATORS
+  isTor       Boolean @default(false)
+  isVpn       Boolean @default(false)
+  isProxy     Boolean @default(false)
+  isMalicious Boolean @default(false)
+
+  // 📊 INTELLIGENCE SOURCES
+  threatSources    Json? // Array of threat intelligence sources
+  lastThreatUpdate DateTime?
+
+  // ⏰ TRACKING
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  lookupCount Int      @default(1)
+  lastUpdated DateTime @updatedAt
+
+  @@index([ipAddress])
+  @@index([reputationScore])
+  @@index([reputationLevel])
+  @@index([country])
+  @@index([isMalicious])
+  @@map("ip_reputation")
   @@schema("tenant")
 }
 
@@ -596,8 +868,9 @@ model LoginHistory {
 }
 
 model AuditLog {
-  id     String  @id @default(uuid()) @db.Uuid
-  userId String? @db.Uuid
+  id        String  @id @default(uuid()) @db.Uuid
+  userId    String? @db.Uuid
+  sessionId String? // References Session.sessionId
 
   // Action details
   action   String
@@ -628,15 +901,64 @@ model AuditLog {
   // Timestamp
   createdAt DateTime @default(now())
 
-  user User? @relation(fields: [userId], references: [id])
+  user    User?    @relation(fields: [userId], references: [id])
+  session Session? @relation(fields: [sessionId], references: [sessionId])
 
   @@index([userId])
+  @@index([sessionId])
   @@index([entity, entityId])
   @@index([action])
   @@index([category])
   @@index([createdAt])
   @@index([schoolId])
   @@map("audit_logs")
+  @@schema("tenant")
+}
+
+// === RISK ASSESSMENTS ===
+model RiskAssessment {
+  id String @id @default(cuid())
+
+  // 🎯 ASSESSMENT TARGET
+  userId         String         @db.Uuid
+  sessionId      String? // References Session.sessionId
+  assessmentType AssessmentType
+
+  // 📊 RISK SCORING
+  overallRiskScore Int // 0-100
+  riskLevel        RiskLevel
+
+  // 🧩 RISK COMPONENTS
+  deviceRisk     Int @default(0)
+  locationRisk   Int @default(0)
+  behavioralRisk Int @default(0)
+  temporalRisk   Int @default(0)
+  patternRisk    Int @default(0)
+
+  // 📋 DETAILED ANALYSIS
+  riskFactors     Json // Array of risk factor objects
+  recommendations Json // Array of security recommendations
+
+  // 🌐 CONTEXT
+  ipAddress         String?
+  deviceFingerprint String?
+  location          String?
+
+  // ⏰ TEMPORAL
+  assessedAt DateTime @default(now())
+
+  // 🔗 RELATIONSHIPS
+  user    User     @relation(fields: [userId], references: [id])
+  session Session? @relation(fields: [sessionId], references: [sessionId])
+
+  // 📈 PERFORMANCE INDEXES
+  @@index([userId, assessedAt])
+  @@index([sessionId])
+  @@index([assessmentType])
+  @@index([overallRiskScore])
+  @@index([riskLevel])
+  @@index([assessedAt])
+  @@map("risk_assessments")
   @@schema("tenant")
 }
 
@@ -743,6 +1065,119 @@ model AnnouncementTranslation {
 }
 
 // ==================== ENUMS ====================
+
+// Enterprise Authentication Enums
+enum DeviceType {
+  MOBILE
+  TABLET
+  DESKTOP
+  LAPTOP
+  BOT
+  UNKNOWN
+
+  @@schema("tenant")
+}
+
+enum DeviceTrustLevel {
+  TRUSTED // Fully trusted device
+  VERIFIED // Verified but monitored  
+  KNOWN // Recognized device
+  UNKNOWN // New/unrecognized device
+  SUSPICIOUS // Flagged for review
+  BLOCKED // Explicitly blocked
+  PENDING // Awaiting verification
+
+  @@schema("tenant")
+}
+
+enum SessionStatus {
+  ACTIVE // Currently active session
+  EXPIRED // Naturally expired
+  TERMINATED // Manually terminated
+  SUSPENDED // Temporarily suspended
+  BLOCKED // Blocked for security
+
+  @@schema("tenant")
+}
+
+enum RiskLevel {
+  LOW // 0-25
+  MEDIUM // 26-50  
+  HIGH // 51-75
+  CRITICAL // 76-100
+
+  @@schema("tenant")
+}
+
+enum AssessmentType {
+  LOGIN // Login risk assessment
+  OPERATION // Real-time operation assessment
+  PERIODIC // Scheduled assessment
+  MANUAL // Admin-initiated assessment
+  INCIDENT // Post-incident assessment
+
+  @@schema("tenant")
+}
+
+enum LocationPolicy {
+  GLOBAL // No location restrictions
+  MONITORED // Location is logged and monitored
+  RESTRICTED // Only allowed locations
+
+  @@schema("tenant")
+}
+
+enum SecurityAlertType {
+  HIGH_RISK_LOGIN
+  IMPOSSIBLE_TRAVEL
+  NEW_DEVICE
+  NEW_LOCATION
+  MULTIPLE_FAILURES
+  SUSPICIOUS_ACTIVITY
+  MALICIOUS_IP
+  POLICY_VIOLATION
+
+  @@schema("tenant")
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@schema("tenant")
+}
+
+enum AlertStatus {
+  ACTIVE
+  INVESTIGATING
+  RESOLVED
+  FALSE_POSITIVE
+
+  @@schema("tenant")
+}
+
+enum LoginResult {
+  SUCCESS
+  FAILED_PASSWORD
+  FAILED_USER_NOT_FOUND
+  FAILED_ACCOUNT_LOCKED
+  FAILED_MFA_REQUIRED
+  FAILED_RISK_BLOCKED
+  FAILED_POLICY_VIOLATION
+
+  @@schema("tenant")
+}
+
+enum ReputationLevel {
+  TRUSTED
+  NEUTRAL
+  SUSPICIOUS
+  MALICIOUS
+
+  @@schema("tenant")
+}
 
 // Platform Level Enums
 enum PlatformStatus {
@@ -911,14 +1346,7 @@ enum AlertType {
   @@schema("public")
 }
 
-enum AlertSeverity {
-  INFO
-  WARNING
-  ERROR
-  CRITICAL
-
-  @@schema("public")
-}
+// Using enterprise AlertSeverity enum defined above
 
 enum PriceChangeType {
   RATE_CHANGE
@@ -1152,7 +1580,7 @@ enum RecordStatus {
   @@schema("tenant")
 }
 
-enum AssessmentType {
+enum AcademicAssessmentType {
   QUIZ
   ASSIGNMENT
   MID_TERM
@@ -4130,6 +4558,12 @@ model User {
   notifications        Notification[]
   notificationSettings NotificationSetting[]
 
+  // 🔐 ENTERPRISE SECURITY RELATIONSHIPS
+  trustedDevices  TrustedDevice[]
+  securityAlerts  SecurityAlert[]
+  loginAttempts   LoginAttempt[]
+  riskAssessments RiskAssessment[]
+
   // Role-specific relations
   teacherProfile Teacher?
   studentProfile Student?
@@ -4924,7 +5358,7 @@ model Assessment {
 
   // Assessment info
   name     String
-  type     AssessmentType
+  type     AcademicAssessmentType
   category String? // Sub-category
 
   // Scoring
@@ -5631,4 +6065,19 @@ model Payment {
   @@index([transactionId])
   @@map("payments")
   @@schema("tenant")
+}
+
+// Authentication Security Models - Using enterprise LoginAttempt model above
+
+model AccountLockout {
+  id          String   @id @default(uuid()) @db.Uuid
+  email       String   @unique
+  lockedUntil DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@index([email])
+  @@index([lockedUntil])
+  @@map("account_lockouts")
+  @@schema("public")
 }

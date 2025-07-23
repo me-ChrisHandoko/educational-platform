@@ -1,0 +1,223 @@
+### Authentication Manual Testing Requests
+### Gunakan file ini dengan Thunder Client (VS Code) atau Postman
+
+@baseUrl = http://localhost:3001/api/v1
+@adminToken = {{login_admin_response.response.body.data.tokens.accessToken}}
+@studentToken = {{login_student_response.response.body.data.tokens.accessToken}}
+@refreshToken = {{login_student_response.response.body.data.tokens.refreshToken}}
+
+### 1. Login dengan Student Account
+# @name login_student
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "student@test.com",
+  "password": "StudentPass123!"
+}
+
+### 2. Login dengan Admin Account  
+# @name login_admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "AdminPass123!"
+}
+
+### 3. Login dengan Instructor Account
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "instructor@test.com",
+  "password": "InstructorPass123!"
+}
+
+### 4. Test Login Gagal - Wrong Password
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "student@test.com",
+  "password": "WrongPassword123!"
+}
+
+### 5. Test Login Gagal - Inactive User
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "inactive@test.com",
+  "password": "InactivePass123!"
+}
+
+### 6. Test Login Gagal - Suspended User
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "suspended@test.com",
+  "password": "SuspendedPass123!"
+}
+
+### 7. Test Login Gagal - Non-existent User
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@test.com",
+  "password": "AnyPassword123!"
+}
+
+### 8. Register New User
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "newuser@test.com",
+  "password": "NewUserPass123!",
+  "confirmPassword": "NewUserPass123!",
+  "firstName": "New",
+  "lastName": "User",
+  "schoolId": "default-school",
+  "role": "STUDENT"
+}
+
+### 9. Test Registration Gagal - Email Already Exists
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "student@test.com",
+  "password": "AnotherPass123!",
+  "confirmPassword": "AnotherPass123!",
+  "firstName": "Another",
+  "lastName": "Student",
+  "schoolId": "default-school",
+  "role": "STUDENT"
+}
+
+### 10. Test Registration Gagal - Password Mismatch
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "mismatch@test.com",
+  "password": "Password123!",
+  "confirmPassword": "DifferentPassword123!",
+  "firstName": "Test",
+  "lastName": "User",
+  "schoolId": "default-school",
+  "role": "STUDENT"
+}
+
+### 11. Test Registration Gagal - Weak Password
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "weak@test.com",
+  "password": "weak",
+  "confirmPassword": "weak",
+  "firstName": "Test",
+  "lastName": "User",
+  "schoolId": "default-school",
+  "role": "STUDENT"
+}
+
+### 12. Refresh Tokens
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 13. Test Refresh Token Gagal - Invalid Token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "invalid-refresh-token"
+}
+
+### 14. Get User Profile (Protected Route)
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{studentToken}}
+
+### 15. Test Protected Route Gagal - No Token
+GET {{baseUrl}}/auth/profile
+
+### 16. Test Protected Route Gagal - Invalid Token
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer invalid-token
+
+### 17. Change Password
+PUT {{baseUrl}}/auth/change-password
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "StudentPass123!",
+  "newPassword": "NewStudentPass123!",
+  "confirmPassword": "NewStudentPass123!"
+}
+
+### 18. Test Change Password Gagal - Wrong Current Password
+PUT {{baseUrl}}/auth/change-password
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "WrongCurrentPass123!",
+  "newPassword": "NewStudentPass123!",
+  "confirmPassword": "NewStudentPass123!"
+}
+
+### 19. Test Change Password Gagal - Password Mismatch
+PUT {{baseUrl}}/auth/change-password
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "StudentPass123!",
+  "newPassword": "NewStudentPass123!",
+  "confirmPassword": "DifferentPassword123!"
+}
+
+### 20. Admin-Only Route - System Debug Info
+GET {{baseUrl}}/monitoring/debug
+Authorization: Bearer {{adminToken}}
+
+### 21. Test Admin Route dengan Student Token (Should Fail)
+GET {{baseUrl}}/monitoring/debug
+Authorization: Bearer {{studentToken}}
+
+### 22. Test Rate Limiting - Multiple Failed Login Attempts
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "student@test.com",
+  "password": "WrongPassword123!"
+}
+
+### 23. Logout (Invalidate Refresh Token)
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{studentToken}}
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### 24. Health Check (Public Route)
+GET {{baseUrl}}/health
+
+### 25. System Status (Public Route)
+GET {{baseUrl}}/monitoring/status
+
+### 26. Application Info (Public Route)
+GET {{baseUrl}}/monitoring/info
